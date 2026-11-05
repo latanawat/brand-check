@@ -1,0 +1,74 @@
+[
+ {
+  "code": "10102",
+  "name": "Chidlom",
+  "nameTh": "ชิดลม",
+  "planDate": "20261101",
+  "floors": 8,
+  "blocks": 226,
+  "brands": 252
+ },
+ {
+  "code": "10110",
+  "name": "Pinklao",
+  "nameTh": "ปิ่นเกล้า",
+  "planDate": "20261101",
+  "floors": 6,
+  "blocks": 246,
+  "brands": 253
+ },
+ {
+  "code": "10114",
+  "name": "Central World",
+  "nameTh": "เซ็นทรัลเวิลด์",
+  "planDate": "20261101",
+  "floors": 7,
+  "blocks": 166,
+  "brands": 191
+ },
+ {
+  "code": "10121",
+  "name": "Phuket",
+  "nameTh": "ภูเก็ต",
+  "planDate": "20261101",
+  "floors": 4,
+  "blocks": 201,
+  "brands": 229
+ },
+ {
+  "code": "10127",
+  "name": "Pattaya",
+  "nameTh": "พัทยา",
+  "planDate": "20261101",
+  "floors": 6,
+  "blocks": 61,
+  "brands": 62
+ },
+ {
+  "code": "10136",
+  "name": "Central Festival Chiang Mai",
+  "nameTh": "เซ็นทรัลเฟสติวัล เชียงใหม่",
+  "planDate": "20261101",
+  "floors": 5,
+  "blocks": 263,
+  "brands": 282
+ },
+ {
+  "code": "10137",
+  "name": "Central Festival Hadyai",
+  "nameTh": "เซ็นทรัลเฟสติวัล หาดใหญ่",
+  "planDate": "20261101",
+  "floors": 6,
+  "blocks": 265,
+  "brands": 300
+ },
+ {
+  "code": "10158",
+  "name": "Mega Bangna",
+  "nameTh": "เมกาบางนา",
+  "planDate": "20261101",
+  "floors": 3,
+  "blocks": 113,
+  "brands": 113
+ }
+]

@@ -1,0 +1,1013 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Brand Assignment Check</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Crect width=%2232%22 height=%2232%22 rx=%227%22 fill=%22%23b3122e%22/%3E%3Cpath d=%22M9 17l5 5 9-11%22 stroke=%22white%22 stroke-width=%223.2%22 fill=%22none%22 stroke-linecap=%22round%22/%3E%3C/svg%3E">
+<style>
+/* Layout: one-screen work tool — header strip, floor tabs, then floor plan (left) + confirmation panel (right); stacks on phones */
+:root{
+  --bg:#f3f1ee; --surface:#ffffff; --surface-2:#f8f6f3; --line:#e2ddd6; --line-2:#cfc8bf;
+  --fg:#1f1a17; --fg-2:#5b534c; --fg-3:#8a8178;
+  --accent:#b3122e; --accent-ink:#ffffff; --accent-soft:#f7e3e6;
+  --paper:#ffffff; --paper-ink:#1f1a17;
+  --st-pending:#d18a00; --st-pending-soft:#fbefd6;
+  --st-ok:#1f8a4c; --st-ok-soft:#dcf1e4;
+  --st-chg:#5a3fc0; --st-chg-soft:#e7e1fa;
+  --st-out:#c0392b; --st-out-soft:#f9e0dd;
+  --st-none:#9a928a;
+  --font:"IBM Plex Sans Thai",system-ui,"Segoe UI",Tahoma,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+  --r:10px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#171412; --surface:#211d1a; --surface-2:#1b1816; --line:#36302b; --line-2:#4a423b;
+  --fg:#f1ece6; --fg-2:#bdb3a9; --fg-3:#8c8279;
+  --accent:#e04a5f; --accent-ink:#1a0b0e; --accent-soft:#3a1d22;
+  --paper:#f4f2ee; --paper-ink:#1f1a17;
+  --st-pending:#e6a52a; --st-pending-soft:#3a2e14;
+  --st-ok:#3fbf73; --st-ok-soft:#173225;
+  --st-chg:#9a85f0; --st-chg-soft:#2a2346;
+  --st-out:#ec6a5c; --st-out-soft:#3b1f1b;
+  --st-none:#7d746c; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#171412; --surface:#211d1a; --surface-2:#1b1816; --line:#36302b; --line-2:#4a423b;
+  --fg:#f1ece6; --fg-2:#bdb3a9; --fg-3:#8c8279;
+  --accent:#e04a5f; --accent-ink:#1a0b0e; --accent-soft:#3a1d22;
+  --paper:#f4f2ee; --paper-ink:#1f1a17;
+  --st-pending:#e6a52a; --st-pending-soft:#3a2e14;
+  --st-ok:#3fbf73; --st-ok-soft:#173225;
+  --st-chg:#9a85f0; --st-chg-soft:#2a2346;
+  --st-out:#ec6a5c; --st-out-soft:#3b1f1b;
+  --st-none:#7d746c; color-scheme:dark}
+
+html,body{height:100%}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--fg);font-family:var(--font);font-size:14px;line-height:1.45}
+*{box-sizing:border-box}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.num{font-variant-numeric:tabular-nums}
+
+.app{height:100%;display:grid;grid-template-rows:auto auto 1fr;min-height:0}
+.top{display:flex;flex-wrap:wrap;align-items:center;gap:12px 20px;padding-block:12px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));background:var(--surface);border-bottom:1px solid var(--line)}
+.ident{display:flex;align-items:center;gap:12px;min-width:0}
+.mark{width:36px;height:36px;border-radius:8px;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;font-weight:700;font-size:13px;letter-spacing:.04em;flex:none}
+.ident h1{font-size:17px;margin:0;font-weight:700;text-wrap:balance;line-height:1.2}
+.ident p{margin:0;color:var(--fg-2);font-size:12.5px}
+.progress{display:flex;gap:18px;align-items:center;flex-wrap:wrap;margin-left:auto;flex:0 1 auto;min-width:0}
+.kpi{display:grid;gap:2px;min-width:150px}
+.kpi .lbl{font-size:11px;color:var(--fg-3);letter-spacing:.04em;text-transform:uppercase}
+.kpi .val{font-weight:600;font-size:14px}
+.bar{height:6px;border-radius:3px;background:var(--line);overflow:hidden;display:flex}
+.bar i{display:block;height:100%}
+.btn{border:1px solid var(--line-2);background:var(--surface);border-radius:8px;padding:7px 12px;font-weight:500;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.btn:hover{border-color:var(--fg-3)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.primary:hover{filter:brightness(1.07)}
+.btn.ghost{border-color:transparent;background:transparent;color:var(--fg-2)}
+.btn.ghost:hover{background:var(--surface-2)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.sm{padding:4px 9px;font-size:12.5px;border-radius:7px}
+
+.floors{display:flex;gap:6px;padding-block:8px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));background:var(--surface-2);border-bottom:1px solid var(--line);overflow-x:auto}
+.ftab{border:1px solid var(--line);background:var(--surface);border-radius:9px;padding:6px 12px 7px;display:grid;gap:4px;min-width:92px;text-align:left}
+.ftab b{font-size:14px}
+.ftab small{color:var(--fg-3);font-size:11.5px}
+.ftab .bar{height:4px}
+.ftab[aria-selected="true"]{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+
+.work{display:grid;grid-template-columns:minmax(0,1fr) 440px;min-height:0}
+.plan{position:relative;min-height:0;min-width:0;background:var(--bg);overflow:hidden}
+.viewer{position:absolute;inset:0;overflow:hidden;touch-action:none;cursor:grab}
+.viewer.dragging{cursor:grabbing}
+.viewer.placing{cursor:crosshair}
+.stage{position:absolute;left:0;top:0;width:1191px;height:842px;transform-origin:0 0;background:var(--paper);box-shadow:0 1px 3px rgba(0,0,0,.12),0 8px 30px rgba(0,0,0,.08)}
+.stage img{position:absolute;inset:0;width:100%;height:100%;user-select:none;-webkit-user-drag:none;pointer-events:none}
+.stage svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.mk rect.hit{fill-opacity:.22;stroke-width:.9;cursor:pointer;transition:fill-opacity .12s}
+.mk:hover rect.hit{fill-opacity:.4}
+.mk.pending rect.hit{fill:var(--st-pending);stroke:var(--st-pending)}
+.mk.ok rect.hit{fill:var(--st-ok);stroke:var(--st-ok)}
+.mk.changed rect.hit{fill:var(--st-chg);stroke:var(--st-chg)}
+.mk.none rect.hit{fill:var(--st-none);stroke:var(--st-none);fill-opacity:.06;stroke-dasharray:1.2 1}
+.mk.draft rect.hit{stroke-dasharray:2 1.2;stroke-width:1.4}
+.mk.dim{opacity:.18}
+.mk.sel rect.ring{fill:none;stroke:var(--accent);stroke-width:2.2}
+.mk.hl rect.ring{fill:none;stroke:var(--accent);stroke-width:1.4;stroke-dasharray:2 1.5}
+.mk text{fill:var(--paper-ink);paint-order:stroke;stroke:var(--paper);stroke-linejoin:round;font-family:var(--font);font-weight:600;pointer-events:none}
+.labels-off .mk text{display:none}
+
+.zoombar{position:absolute;right:12px;bottom:12px;display:flex;flex-direction:column;gap:6px;z-index:3}
+.zoombar button{width:36px;height:36px;border-radius:9px;border:1px solid var(--line-2);background:var(--surface);font-size:18px;line-height:1;display:grid;place-items:center}
+.legend{position:absolute;left:12px;bottom:12px;z-index:3;background:color-mix(in srgb,var(--surface) 92%,transparent);border:1px solid var(--line);border-radius:10px;padding:8px 10px;display:flex;flex-wrap:wrap;gap:6px 12px;font-size:12px;max-width:calc(100% - 80px)}
+.legend span{display:inline-flex;align-items:center;gap:6px;color:var(--fg-2)}
+.sw{width:12px;height:12px;border-radius:3px;border:1.5px solid;display:inline-block;flex:none}
+.sw.pending{background:var(--st-pending-soft);border-color:var(--st-pending)}
+.sw.ok{background:var(--st-ok-soft);border-color:var(--st-ok)}
+.sw.changed{background:var(--st-chg-soft);border-color:var(--st-chg)}
+.sw.none{border-color:var(--st-none);border-style:dashed}
+.legend label{display:inline-flex;gap:6px;align-items:center;color:var(--fg);cursor:pointer}
+.planbanner{position:absolute;left:50%;top:12px;transform:translateX(-50%);z-index:4;background:var(--fg);color:var(--bg);padding:8px 10px 8px 14px;border-radius:10px;display:flex;gap:10px;align-items:center;font-weight:500;max-width:calc(100% - 24px);box-shadow:0 6px 20px rgba(0,0,0,.2)}
+.planbanner .btn{background:transparent;color:inherit;border-color:color-mix(in srgb,var(--bg) 40%,transparent)}
+.fname{position:absolute;left:12px;top:12px;z-index:3;background:var(--surface);border:1px solid var(--line);border-radius:9px;padding:6px 10px;font-weight:600;font-size:13px}
+.fname small{font-weight:400;color:var(--fg-3);margin-left:6px}
+
+.panel{background:var(--surface);border-left:1px solid var(--line);display:flex;flex-direction:column;min-height:0;min-width:0}
+.ptabs{display:flex;border-bottom:1px solid var(--line);padding:0 12px;gap:4px;flex:none}
+.ptab{border:0;background:none;padding:12px 10px 10px;border-bottom:2px solid transparent;font-weight:500;color:var(--fg-2)}
+.ptab[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--accent)}
+.pbody{overflow:auto;flex:1;min-height:0;padding:14px 16px 20px}
+.pfoot{flex:none;border-top:1px solid var(--line);padding:12px 16px;padding-bottom:max(12px,env(safe-area-inset-bottom,0px));display:flex;gap:8px;flex-wrap:wrap;align-items:center;background:var(--surface)}
+.pfoot .grow{flex:1}
+.qprog{display:grid;gap:6px;margin:4px 0 6px;padding:10px 12px;border-radius:var(--r);background:var(--surface-2);border:1px solid var(--line)}
+.qprog .t{display:flex;justify-content:space-between;gap:8px;font-size:13px}
+.qprog .t b{font-weight:600}
+.qprog .bar{height:6px}
+.q{border:1px solid var(--line);border-radius:var(--r);padding:12px;display:grid;gap:10px;margin-bottom:10px;background:var(--surface);transition:border-color .15s,box-shadow .15s,background .15s;scroll-margin:16px}
+.qhead{display:flex;gap:10px;align-items:flex-start}
+.qhead .grow{flex:1;min-width:0}
+.qn{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-size:12.5px;font-weight:700;flex:none;background:var(--line);color:var(--fg-2);font-family:var(--mono);margin-top:1px}
+.qt{font-weight:600;display:block;overflow-wrap:anywhere}
+.qs{display:block;color:var(--fg-3);font-size:12px}
+.qask{font-size:13.5px;font-weight:500;color:var(--fg)}
+.qbadge{font-size:11.5px;font-weight:600;padding:2px 8px;border-radius:999px;white-space:nowrap}
+.q.todo{border-color:color-mix(in srgb,var(--accent) 45%,var(--line));background:color-mix(in srgb,var(--accent-soft) 55%,var(--surface))}
+.q.todo .qn{background:var(--accent);color:var(--accent-ink)}
+.q.todo .qbadge{background:var(--accent);color:var(--accent-ink)}
+.q.todo .seg{border-color:var(--accent);box-shadow:0 1px 0 rgba(0,0,0,.04)}
+.q.todo .seg button{font-weight:600;padding-block:9px}
+.q.todo .seg button:not([aria-pressed="true"]){color:var(--fg)}
+.q.todo .seg button:not([aria-pressed="true"]):hover{background:var(--accent-soft)}
+.q.todo .seg button+button{border-left-color:color-mix(in srgb,var(--accent) 40%,var(--line-2))}
+.q.next{border-width:2px;padding:11px;box-shadow:0 0 0 4px color-mix(in srgb,var(--accent) 16%,transparent)}
+.q.done .qn{background:var(--st-ok);color:#fff}
+.q.done .qbadge{background:var(--st-ok-soft);color:var(--st-ok)}
+.q.done{background:var(--surface)}
+.q.done .qask{color:var(--fg-3);font-weight:400}
+.q.done.s-out{background:color-mix(in srgb,var(--st-out-soft) 40%,var(--surface))}
+.q .todo-hint{font-size:12.5px;color:var(--accent);font-weight:600}
+.opt{font-size:10.5px;letter-spacing:.02em;text-transform:none;font-weight:500;color:var(--fg-3);border:1px solid var(--line);border-radius:5px;padding:0 6px}
+.req{font-size:10.5px;letter-spacing:.02em;text-transform:none;font-weight:600;color:var(--accent);border:1px solid color-mix(in srgb,var(--accent) 50%,var(--line));border-radius:5px;padding:0 6px}
+.optional{opacity:.92}
+.pfoot .left{display:grid;gap:2px;flex:1;min-width:0}
+.pfoot .left b{font-size:13px}
+
+
+.search{width:100%;border:1px solid var(--line-2);background:var(--surface-2);border-radius:9px;padding:8px 11px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 12px}
+.chip{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:3px 10px;font-size:12.5px;color:var(--fg-2);display:inline-flex;gap:6px;align-items:center}
+.chip[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.blist{display:grid;gap:2px}
+.brow{display:grid;grid-template-columns:62px minmax(0,1fr) auto;gap:10px;align-items:center;padding:8px 8px;border-radius:8px;border:0;background:none;text-align:left;width:100%}
+.brow:hover{background:var(--surface-2)}
+.brow .id{font-family:var(--mono);font-weight:600;font-size:13px}
+.brow .id small{display:block;font-family:var(--font);font-weight:400;color:var(--fg-3);font-size:11px}
+.brow .nm{min-width:0}
+.brow .nm b{display:block;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.brow .nm span{display:block;color:var(--fg-3);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pill{font-size:11.5px;padding:2px 8px;border-radius:999px;white-space:nowrap;font-weight:500}
+.pill.pending{background:var(--st-pending-soft);color:var(--st-pending)}
+.pill.ok{background:var(--st-ok-soft);color:var(--st-ok)}
+.pill.changed{background:var(--st-chg-soft);color:var(--st-chg)}
+.pill.none{background:var(--surface-2);color:var(--fg-3)}
+.pill.draft{background:var(--accent-soft);color:var(--accent)}
+.empty{color:var(--fg-3);padding:24px 8px;text-align:center}
+.hint{color:var(--fg-3);font-size:12.5px;margin:0 0 10px}
+
+.bhead{display:flex;align-items:flex-start;gap:12px;margin-bottom:14px}
+.bhead .big{font-family:var(--mono);font-size:22px;font-weight:600;line-height:1.1}
+.bhead .meta{color:var(--fg-2);font-size:12.5px}
+.bhead .grow{flex:1;min-width:0}
+.sect{margin:18px 0 8px;font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--fg-3);font-weight:600;display:flex;align-items:center;gap:8px}
+.sect .grow{flex:1;height:1px;background:var(--line)}
+.item{border:1px solid var(--line);border-radius:var(--r);padding:10px 12px;display:grid;gap:8px;margin-bottom:8px;background:var(--surface)}
+.item.s-present{border-color:color-mix(in srgb,var(--st-ok) 45%,var(--line))}
+.item.s-out{border-color:color-mix(in srgb,var(--st-out) 45%,var(--line));background:color-mix(in srgb,var(--st-out-soft) 40%,var(--surface))}
+.item.s-moved{border-color:color-mix(in srgb,var(--st-chg) 45%,var(--line))}
+.ihead{display:flex;gap:8px;align-items:flex-start}
+.ihead .grow{flex:1;min-width:0}
+.ihead b{font-weight:600;display:block;overflow-wrap:anywhere}
+.ihead small{color:var(--fg-3);font-size:12px;display:block}
+.src{font-size:10.5px;padding:1px 6px;border-radius:5px;border:1px solid var(--line-2);color:var(--fg-2);white-space:nowrap}
+.src.new{border-color:var(--accent);color:var(--accent)}
+.seg{display:grid;grid-template-columns:repeat(3,1fr);border:1px solid var(--line-2);border-radius:8px;overflow:hidden}
+.seg button{border:0;background:var(--surface);padding:6px 4px;font-size:13px;font-weight:500;color:var(--fg-2)}
+.seg button+button{border-left:1px solid var(--line-2)}
+.seg button[aria-pressed="true"].present{background:var(--st-ok);color:#fff}
+.seg button[aria-pressed="true"].out{background:var(--st-out);color:#fff}
+.seg button[aria-pressed="true"].moved{background:var(--st-chg);color:#fff}
+.seg.two{grid-template-columns:repeat(2,1fr)}
+.seg button[aria-pressed="true"].same{background:var(--st-ok);color:#fff}
+.seg button[aria-pressed="true"].changed{background:var(--st-chg);color:#fff}
+.row2{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.row2 select,.row2 input{border:1px solid var(--line-2);border-radius:7px;padding:5px 8px;background:var(--surface-2);min-width:0}
+.note{width:100%;border:1px solid var(--line);border-radius:7px;padding:6px 9px;background:var(--surface-2);font-size:13px;resize:vertical}
+.link{border:0;background:none;padding:0;color:var(--accent);font-weight:500;font-size:12.5px;text-decoration:underline;text-underline-offset:2px}
+.addbox{border:1px dashed var(--line-2);border-radius:var(--r);padding:10px 12px;display:grid;gap:8px}
+.results{display:grid;gap:2px;max-height:260px;overflow:auto}
+.res{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;text-align:left;border:0;background:none;padding:6px 8px;border-radius:7px;align-items:center}
+.res:hover{background:var(--surface-2)}
+.res b{display:block;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.res small{display:block;color:var(--fg-3);font-size:11.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.res .num{color:var(--fg-2);font-size:12.5px}
+.incoming{background:var(--st-chg-soft);border-radius:var(--r);padding:8px 12px;font-size:13px;display:grid;gap:6px;margin-bottom:8px}
+.stamp{font-size:12px;color:var(--fg-3)}
+.toast{position:fixed;left:50%;bottom:max(20px,env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:9px 16px;border-radius:9px;z-index:50;font-weight:500;box-shadow:0 6px 20px rgba(0,0,0,.25);max-width:calc(100% - 32px)}
+.notice{margin:0;padding:8px 12px;border-radius:9px;font-size:12.5px;background:var(--st-pending-soft);color:var(--fg)}
+.ubrow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;padding:8px;border-radius:8px}
+.ubrow:hover{background:var(--surface-2)}
+.ubrow b{display:block;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ubrow small{display:block;color:var(--fg-3);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.loading{position:absolute;inset:0;display:grid;place-items:center;color:var(--fg-3)}
+
+.app.choose{grid-template-rows:auto 1fr}
+.chooser{overflow:auto;min-height:0;padding-block:28px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.chooser .wrap{max-width:1180px;margin:0 auto;display:grid;gap:18px}
+.chooser h2{margin:0;font-size:20px;font-weight:700;text-wrap:balance}
+.chooser .sub{margin:4px 0 0;color:var(--fg-2)}
+.fgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+.fcard{display:grid;grid-template-rows:auto auto;border:1px solid var(--line);border-radius:14px;background:var(--surface);overflow:hidden;text-align:left;padding:0;transition:border-color .15s,transform .15s}
+.fcard:hover{border-color:var(--accent);transform:translateY(-1px)}
+.fcard .thumb{aspect-ratio:1191/842;background:var(--paper);border-bottom:1px solid var(--line);position:relative;max-width:100%}
+.fcard .thumb img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
+.fcard .tag{position:absolute;left:10px;top:10px;background:var(--fg);color:var(--bg);font-weight:700;font-size:18px;padding:4px 12px;border-radius:9px;font-family:var(--mono)}
+.fcard .info{padding:12px 14px 14px;display:grid;gap:8px}
+.fcard .line{display:flex;justify-content:space-between;gap:10px;align-items:baseline;flex-wrap:wrap}
+.fcard .line b{font-size:15px}
+.fcard .line span{color:var(--fg-3);font-size:12.5px}
+.fcard .stats{display:flex;gap:6px;flex-wrap:wrap}
+.fcard.empty-floor .info b{color:var(--fg-3)}
+.ftab.back{min-width:0;display:flex;align-items:center;gap:6px;font-weight:500;color:var(--fg-2)}
+@media (max-width:900px){
+  .app{height:auto;display:block}
+  .work{display:block}
+  .plan{height:62vh;min-height:360px}
+  .panel{border-left:0;border-top:1px solid var(--line)}
+  .pbody{overflow:visible}
+  .progress{margin-left:0;width:100%}
+  .kpi{flex:1;min-width:0}
+  .legend{font-size:11px;max-width:calc(100% - 70px)}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+/* --- multi-store additions --- */
+.app.page-mode{grid-template-rows:auto 1fr}
+.pagewrap{overflow:auto;min-height:0;padding-block:28px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.pagewrap .wrap{max-width:1180px;margin:0 auto;display:grid;gap:18px}
+.pagewrap h2{margin:0;font-size:21px;font-weight:700;text-wrap:balance}
+.pagewrap .sub{margin:4px 0 0;color:var(--fg-2)}
+.crumbs{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:12.5px;color:var(--fg-3);margin-top:2px}
+.crumbs button{border:0;background:none;padding:0;color:var(--fg-2);text-decoration:underline;text-underline-offset:2px;font-size:12.5px}
+.who-chip{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:999px;padding:4px 6px 4px 12px;background:var(--surface-2);font-size:12.5px;max-width:100%;min-width:0}
+.who-chip span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.who-chip b{font-weight:600}
+.toprt{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-left:auto;min-width:0}
+.scards{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
+.scard{display:grid;gap:12px;border:1px solid var(--line);border-radius:14px;background:var(--surface);padding:16px;text-align:left;transition:border-color .15s,transform .15s}
+.scard:hover{border-color:var(--accent);transform:translateY(-1px)}
+.scard .code{font-family:var(--mono);font-size:12px;color:var(--fg-3)}
+.scard .nm{font-size:19px;font-weight:700;line-height:1.2}
+.scard .nm small{display:block;font-size:13px;font-weight:400;color:var(--fg-2)}
+.scard .meta{display:flex;gap:6px;flex-wrap:wrap}
+.scard .row{display:flex;justify-content:space-between;gap:8px;font-size:12.5px;color:var(--fg-2)}
+.formcard{max-width:520px;width:100%;margin:0 auto;border:1px solid var(--line);border-radius:16px;background:var(--surface);padding:24px;display:grid;gap:16px}
+.formcard .storetag{display:inline-flex;gap:8px;align-items:center;background:var(--surface-2);border:1px solid var(--line);border-radius:9px;padding:6px 10px;font-size:13px;justify-self:start}
+.field{display:grid;gap:6px}
+.field label{font-weight:600;font-size:13.5px}
+.field label .req{margin-left:6px}
+.field input,.field select{border:1px solid var(--line-2);border-radius:9px;padding:10px 12px;background:var(--surface-2);font-size:15px;width:100%}
+.field input:focus,.field select:focus{border-color:var(--accent);outline:none;box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 18%,transparent)}
+.field small{color:var(--fg-3);font-size:12px}
+.err{color:var(--st-out);font-size:12.5px;font-weight:500}
+.btn.lg{padding:11px 18px;font-size:15px;border-radius:10px;justify-content:center}
+.admin-top{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.admin-top .grow{flex:1}
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+table.t{border-collapse:collapse;width:100%;font-size:13px;min-width:720px}
+table.t th,table.t td{padding:9px 12px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}
+table.t th{font-size:11.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--fg-3);font-weight:600;background:var(--surface-2)}
+table.t td.n{text-align:right;font-variant-numeric:tabular-nums}
+table.t tr:last-child td{border-bottom:0}
+.mini{display:inline-block;width:80px;height:6px;border-radius:3px;background:var(--line);overflow:hidden;vertical-align:middle;margin-right:8px}
+.mini i{display:block;height:100%;background:var(--st-ok)}
+.demo{background:var(--st-pending-soft);color:var(--fg);border:1px solid color-mix(in srgb,var(--st-pending) 40%,var(--line));border-radius:10px;padding:8px 12px;font-size:12.5px}
+.footlink{display:flex;justify-content:center;padding-top:8px}
+.sync{font-size:12px;color:var(--fg-3)}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <header class="top">
+    <div class="ident">
+      <div class="mark" aria-hidden="true">CDS</div>
+      <div style="min-width:0">
+        <h1 id="hTitle">Brand Assignment Check</h1>
+        <div class="crumbs" id="crumbs"></div>
+      </div>
+    </div>
+    <div class="toprt">
+      <div class="progress" id="kpis"></div>
+      <div id="whoChip"></div>
+    </div>
+  </header>
+  <nav class="floors" id="floors" role="tablist" aria-label="ชั้น" hidden></nav>
+  <section class="pagewrap" id="pageView"></section>
+  <main class="work" id="work" hidden>
+    <section class="plan" id="plan">
+      <div class="viewer" id="viewer">
+        <div class="stage" id="stage"><img id="planImg" alt="แผนผังชั้น"><svg id="overlay" xmlns="http://www.w3.org/2000/svg"></svg></div>
+      </div>
+      <div class="fname" id="fname"></div>
+      <div class="planbanner" id="placeBanner" hidden></div>
+      <div class="zoombar">
+        <button type="button" id="zin" aria-label="ซูมเข้า">+</button>
+        <button type="button" id="zout" aria-label="ซูมออก">−</button>
+        <button type="button" id="zfit" aria-label="พอดีจอ"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 6V2h4M14 6V2h-4M2 10v4h4M14 10v4h-4" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></button>
+      </div>
+      <div class="legend">
+        <span><i class="sw pending"></i>รอยืนยัน</span>
+        <span><i class="sw ok"></i>ยืนยัน · ไม่เปลี่ยน</span>
+        <span><i class="sw changed"></i>ยืนยัน · มีเปลี่ยนแปลง</span>
+        <span><i class="sw none"></i>ไม่มีแบรนด์ในไฟล์</span>
+        <label><input type="checkbox" id="lblToggle" checked> ชื่อแบรนด์</label>
+      </div>
+      <div class="loading" id="loading">กำลังโหลดแผนผัง…</div>
+    </section>
+    <aside class="panel" id="panel" aria-label="ยืนยันข้อมูล"></aside>
+  </main>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script src="config.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+(() => {
+const CFG = Object.assign({API_URL:"", DEMO_ADMIN_CODE:"7777777", REFRESH_SECONDS:45}, window.BRAND_CHECK_CONFIG || {});
+const ST_TXT = {pending:"รอยืนยัน", ok:"ยืนยันแล้ว", changed:"มีการเปลี่ยนแปลง", none:"ไม่มีแบรนด์ในไฟล์", draft:"ยังไม่บันทึก"};
+const IT_TXT = {present:"ยังอยู่", out:"ออกแล้ว", moved:"ย้าย Block"};
+const POSITIONS = Array.isArray(CFG.POSITIONS) && CFG.POSITIONS.length ? CFG.POSITIONS : ["SGM","Secretary","Admin SMM","SMM","DSM"];
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const keyOf = (f,id) => f+"_"+id;
+const fmtPlanDate = d => d && d.length===8 ? `${+d.slice(6,8)} ${["ม.ค.","ก.พ.","มี.ค.","เม.ย.","พ.ค.","มิ.ย.","ก.ค.","ส.ค.","ก.ย.","ต.ค.","พ.ย.","ธ.ค."][+d.slice(4,6)-1]} ${d.slice(0,4)}` : (d||"");
+const fmtTime = iso => { try { return new Date(iso).toLocaleString("th-TH",{dateStyle:"medium",timeStyle:"short"}); } catch(e){ return iso; } };
+
+/* ================= storage helpers ================= */
+function lsGet(k, d){ try{ const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; }catch(e){ return d; } }
+function lsSet(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+
+/* ================= API (Apps Script or demo) ================= */
+const DEMO = !CFG.API_URL;
+const API = DEMO ? {
+  async list(store){ return lsGet("brandcheck-demo-"+store, {}); },
+  async save(store, key, doc){ const m = lsGet("brandcheck-demo-"+store, {}); m[key] = doc; lsSet("brandcheck-demo-"+store, m); return true; },
+  async admin(pin, codes){ if (String(pin) !== String(CFG.DEMO_ADMIN_CODE)) throw {code:"bad_pin"}; const out = {}; for (const c of codes) out[c] = lsGet("brandcheck-demo-"+c, {}); return out; },
+} : {
+  async list(store){
+    const r = await fetch(`${CFG.API_URL}?action=list&store=${encodeURIComponent(store)}&t=${Date.now()}`);
+    const j = await r.json(); if (!j.ok) throw {code:j.error||"error"}; return j.docs || {};
+  },
+  async save(store, key, doc){
+    const r = await fetch(CFG.API_URL, {method:"POST", headers:{"Content-Type":"text/plain;charset=utf-8"}, body:JSON.stringify({action:"save", store, key, doc})});
+    const j = await r.json(); if (!j.ok) throw {code:j.error||"error"}; return true;
+  },
+  async admin(pin){
+    const r = await fetch(CFG.API_URL, {method:"POST", headers:{"Content-Type":"text/plain;charset=utf-8"}, body:JSON.stringify({action:"admin", pin})});
+    const j = await r.json(); if (!j.ok) throw {code:j.error||"error"}; return j.stores || {};
+  },
+};
+
+/* ================= state ================= */
+let STORES = [];
+const storeCache = {};   // code -> parsed store context
+let S = null;            // current store context
+let docs = {};           // current store docs
+const drafts = {};       // `${code}|${key}` -> draft
+let respondent = lsGet("brandcheck-respondent", null);
+const ui = { view:"stores", floor:null, sel:null, tab:"blocks", filter:"all", q:"", uq:"", uzero:false, placing:null, addQ:"", labels:true, matchFor:null, sq:"" };
+let admin = { pin:null, data:null, loading:false, err:"" };
+let syncAt = null, syncErr = false;
+
+async function loadStores(){ STORES = await fetch("stores.json", {cache:"no-cache"}).then(r => r.json()); }
+async function loadStore(code){
+  if (storeCache[code]) return storeCache[code];
+  const meta = STORES.find(s => s.code === code); if (!meta) throw new Error("no store");
+  const base = `stores/${code}/`;
+  const D = await fetch(base+"data.json", {cache:"no-cache"}).then(r => r.json());
+  const ctx = {code, meta, D, base, ROWS:new Map(), BLOCKS:new Map(), BY_FLOOR:{}, FLOORS:D.floors, FLABEL:D.floorLabels, VB:D.viewBox};
+  for (const r of D.rows){ const o = {r:r[0], b:r[1], d:D.depts[r[2]], s:D.subs[r[3]], act:r[4], st:D.stores[r[5]], f:r[6], k:r[7]}; ctx.ROWS.set(o.r, o); }
+  for (const f of D.floors) ctx.BY_FLOOR[f] = [];
+  for (const [f,id,ns,rows,bb] of D.blocks){ const o = {f,id,ns,bb,key:keyOf(f,id), exp:rows.map(r=>({r, src:"a"}))}; ctx.BLOCKS.set(o.key,o); (ctx.BY_FLOOR[f] ||= []).push(o); }
+  for (const f of D.floors) ctx.BY_FLOOR[f].sort((a,b)=>a.id.localeCompare(b.id));
+  storeCache[code] = ctx; return ctx;
+}
+const FL = f => S?.FLABEL[f] || f;
+const bLabel = key => { const [f,id] = key.split("_"); return FL(f)+" · "+id; };
+const dk = key => S.code+"|"+key;
+
+/* ================= routing ================= */
+function parseHash(){
+  const h = location.hash.slice(1);
+  if (h === "admin") return {view:"admin"};
+  let m = /^s([A-Za-z0-9]+)-who$/.exec(h); if (m) return {view:"who", store:m[1]};
+  m = /^s([A-Za-z0-9]+)-f([A-Za-z0-9]+)$/.exec(h); if (m) return {view:"plan", store:m[1], floor:m[2]};
+  m = /^s([A-Za-z0-9]+)$/.exec(h); if (m) return {view:"floors", store:m[1]};
+  return {view:"stores"};
+}
+function go(hash){ if (location.hash === hash || (!hash && !location.hash)) route(); else location.hash = hash; }
+async function route(){
+  const r = parseHash();
+  ui.sel = null; ui.placing = null; ui.q = ""; ui.matchFor = null; ui.addQ = "";
+  if (r.view === "stores" || r.view === "admin"){ S = null; ui.view = r.view; ui.floor = null; render(); if (r.view==="admin" && admin.pin) adminRefresh(); return; }
+  try { S = await loadStore(r.store); } catch(e){ toast("ไม่พบข้อมูลสาขานี้"); S = null; ui.view = "stores"; render(); return; }
+  if (r.view !== "who" && !respondent){ go(`#s${r.store}-who`); return; }
+  ui.view = r.view;
+  ui.floor = r.view === "plan" && S.FLOORS.includes(r.floor) ? r.floor : null;
+  if (r.view === "plan" && !ui.floor){ go(`#s${S.code}`); return; }
+  ui.filter = "all"; ui.tab = "blocks";
+  render(); refreshDocs();
+}
+window.addEventListener("hashchange", route);
+
+async function refreshDocs(){
+  if (!S) return; const code = S.code;
+  try { const d = await API.list(code); if (S && S.code === code){ docs = d || {}; syncAt = new Date(); syncErr = false; render(); } }
+  catch(e){ syncErr = true; renderTop(); }
+}
+setInterval(() => { if (document.visibilityState === "visible" && S && (ui.view==="floors"||ui.view==="plan")) refreshDocs(); }, Math.max(15, CFG.REFRESH_SECONDS)*1000);
+
+/* ================= status logic ================= */
+function workingCopy(key){
+  if (drafts[dk(key)]) return drafts[dk(key)];
+  const b = S.BLOCKS.get(key), d = docs[key];
+  if (d) return JSON.parse(JSON.stringify({layout:d.layout??null, layoutNote:d.layoutNote||"", remark:d.remark||"", items:d.items||{}, order:d.order||Object.keys(d.items||{})}));
+  const items = {}; for (const e of b.exp) items["r"+e.r] = {r:e.r, name:S.ROWS.get(e.r)?.b, src:e.src, status:null, note:""};
+  return {layout:null, layoutNote:"", remark:"", items, order:Object.keys(items)};
+}
+function isChanged(d){ if (!d) return false; if (d.layout === "changed") return true; return Object.values(d.items||{}).some(i => i.status !== "present" || i.src === "new"); }
+function blockStatusIn(ctx, dmap, key){
+  const d = dmap[key]; if (d && d.confirmedAt) return isChanged(d) ? "changed" : "ok";
+  return ctx.BLOCKS.get(key).exp.length ? "pending" : "none";
+}
+const blockStatus = key => blockStatusIn(S, docs, key);
+function blockBrands(key){
+  const d = drafts[dk(key)] || docs[key];
+  if (d) return (d.order||Object.keys(d.items)).map(k=>d.items[k]).filter(i=>i && i.status!=="out" && i.status!=="moved").map(i=>i.name);
+  return S.BLOCKS.get(key).exp.map(e => S.ROWS.get(e.r)?.b);
+}
+function incomingMoves(key){
+  const out = [];
+  for (const [k,d] of Object.entries(docs)){ if (k===key || !d.confirmedAt) continue;
+    for (const it of Object.values(d.items||{})) if (it.status==="moved" && it.movedTo===key) out.push({from:k, it}); }
+  return out;
+}
+function floorStatsIn(ctx, dmap, f){
+  let tot=0, done=0, chg=0;
+  for (const b of ctx.BY_FLOOR[f]){ const s = blockStatusIn(ctx, dmap, b.key); if (s==="none" && !(dmap[b.key]?.confirmedAt)) continue; tot++; if (s==="ok"||s==="changed") done++; if (s==="changed") chg++; }
+  return {tot,done,chg};
+}
+function storeStatsIn(ctx, dmap){
+  let tot=0,done=0,chg=0; for (const f of ctx.FLOORS){ const s=floorStatsIn(ctx,dmap,f); tot+=s.tot; done+=s.done; chg+=s.chg; } return {tot,done,chg};
+}
+
+/* ================= header ================= */
+function renderTop(){
+  const crumbs = [];
+  if (ui.view === "admin"){ $("#hTitle").textContent = "Admin · Brand Assignment Check"; crumbs.push(`<button type="button" data-nav="">เลือกสาขา</button>`, `<span>/</span><span>Admin</span>`); }
+  else if (!S){ $("#hTitle").textContent = "Brand Assignment Check"; crumbs.push(`<span>ยืนยันแบรนด์ราย Block ตามแผนผังของแต่ละสาขา</span>`); }
+  else {
+    $("#hTitle").textContent = `Brand Assignment · ${S.meta.name}`;
+    crumbs.push(`<button type="button" data-nav="">เลือกสาขา</button>`, `<span>/</span>`);
+    if (ui.view === "plan") crumbs.push(`<button type="button" data-nav="#s${S.code}">${esc(S.meta.name)} ${S.code}</button><span>/</span><span>ชั้น ${FL(ui.floor)}</span>`);
+    else crumbs.push(`<span>${esc(S.meta.name)} ${S.code} · แผนผัง ${fmtPlanDate(S.D.planDate)}</span>`);
+  }
+  $("#crumbs").innerHTML = crumbs.join("");
+  $("#crumbs").querySelectorAll("[data-nav]").forEach(b => b.onclick = () => go(b.dataset.nav));
+  if (S && (ui.view==="floors" || ui.view==="plan")){
+    const st = storeStatsIn(S, docs);
+    $("#kpis").innerHTML = `<div class="kpi"><span class="lbl">Blocks ที่ยืนยันแล้ว · ${esc(S.meta.name)}</span><span class="val num">${st.done} / ${st.tot}${st.chg?` <small style="color:var(--st-chg);font-weight:500">· เปลี่ยน ${st.chg}</small>`:""}</span>
+      <div class="bar"><i style="width:${st.tot?(st.done-st.chg)/st.tot*100:0}%;background:var(--st-ok)"></i><i style="width:${st.tot?st.chg/st.tot*100:0}%;background:var(--st-chg)"></i></div>
+      <span class="sync">${syncErr?"เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ ข้อมูลอาจไม่ล่าสุด":syncAt?"อัปเดต "+syncAt.toLocaleTimeString("th-TH",{hour:"2-digit",minute:"2-digit"}):"กำลังโหลดข้อมูล…"}</span></div>`;
+  } else $("#kpis").innerHTML = "";
+  $("#whoChip").innerHTML = respondent && S && ui.view!=="who" ? `<div class="who-chip"><span>ผู้ตอบ: <b>${esc(respondent.name)}</b> · ${esc(respondent.position)}</span><button class="btn ghost sm" type="button" id="chgWho">เปลี่ยน</button></div>` : "";
+  const cw = $("#chgWho"); if (cw) cw.onclick = () => go(`#s${S.code}-who`);
+  if (ui.view === "plan"){
+    $("#floors").innerHTML = `<button class="ftab back" type="button" data-back="1">← เลือกชั้น</button>` + S.FLOORS.map(f => { const s=floorStatsIn(S,docs,f);
+      return `<button class="ftab" role="tab" type="button" aria-selected="${ui.floor===f}" data-floor="${f}"><b>${FL(f)}</b><small class="num">${s.done}/${s.tot} blocks</small><span class="bar"><i style="width:${s.tot?(s.done-s.chg)/s.tot*100:0}%;background:var(--st-ok)"></i><i style="width:${s.tot?s.chg/s.tot*100:0}%;background:var(--st-chg)"></i></span></button>`; }).join("");
+  }
+}
+$("#floors").addEventListener("click", e => { const b = e.target.closest(".ftab"); if (!b) return; if (b.dataset.back){ go(`#s${S.code}`); return; } go(`#s${S.code}-f${b.dataset.floor}`); });
+
+/* ================= pages ================= */
+function render(){
+  const plan = ui.view === "plan";
+  $("#app").classList.toggle("page-mode", !plan);
+  $("#pageView").hidden = plan; $("#work").hidden = !plan; $("#floors").hidden = !plan;
+  renderTop();
+  if (plan){ renderPlan(); renderPanel(); return; }
+  const pv = $("#pageView");
+  if (ui.view === "stores") pv.innerHTML = storesPage();
+  else if (ui.view === "who") pv.innerHTML = whoPage();
+  else if (ui.view === "floors") pv.innerHTML = floorsPage();
+  else if (ui.view === "admin") pv.innerHTML = adminPage();
+  bindPage();
+}
+const demoNote = () => DEMO ? `<div class="demo"><b>โหมดทดลอง</b> — ยังไม่ได้ตั้งค่า Apps Script (config.js) ข้อมูลจะถูกเก็บไว้ในเบราว์เซอร์เครื่องนี้เท่านั้น</div>` : "";
+function storesPage(){
+  const q = ui.sq.trim().toLowerCase();
+  const list = STORES.filter(s => !q || [s.code,s.name,s.nameTh].join(" ").toLowerCase().includes(q));
+  return `<div class="wrap">${demoNote()}
+    <div><h2>เลือกสาขา</h2><p class="sub">เลือกสาขาที่ต้องการยืนยันข้อมูลแบรนด์ตามแผนผัง</p></div>
+    ${STORES.length>6?`<input class="search" id="sq" type="search" placeholder="ค้นหาสาขา (ชื่อหรือรหัส)" value="${esc(ui.sq)}" style="max-width:420px">`:""}
+    <div class="scards">${list.map(s => `<button class="scard" type="button" data-store="${esc(s.code)}">
+      <span class="code">${esc(s.code)}</span>
+      <span class="nm">${esc(s.name)}${s.nameTh?`<small>${esc(s.nameTh)}</small>`:""}</span>
+      <span class="row"><span>แผนผัง ${fmtPlanDate(s.planDate)}</span><span>${s.floors} ชั้น</span></span>
+      <span class="meta"><span class="pill none">${s.blocks} Blocks</span><span class="pill none">${s.brands} แบรนด์</span></span>
+    </button>`).join("") || `<div class="empty">ไม่พบสาขา</div>`}</div>
+    <div class="footlink"><button class="btn ghost sm" type="button" data-nav="#admin">สำหรับ Admin →</button></div></div>`;
+}
+function whoPage(){
+  const r = respondent || {name:"", position:""};
+  return `<div class="wrap"><form class="formcard" id="whoForm" novalidate>
+    <span class="storetag">สาขา <b>${esc(S.meta.name)}</b> <span class="mono" style="color:var(--fg-3)">${S.code}</span></span>
+    <div><h2>ข้อมูลผู้ตอบ</h2><p class="sub">ชื่อและตำแหน่งจะถูกบันทึกคู่กับทุก Block ที่คุณยืนยัน</p></div>
+    <div class="field"><label for="wName">ชื่อ - นามสกุล <span class="req">ต้องกรอก</span></label><input id="wName" autocomplete="name" value="${esc(r.name)}" placeholder="เช่น สมชาย ใจดี"></div>
+    <div class="field"><label for="wPos">ตำแหน่ง <span class="req">ต้องเลือก</span></label><select id="wPos"><option value="">เลือกตำแหน่ง</option>${POSITIONS.map(p=>`<option value="${esc(p)}" ${r.position===p?"selected":""}>${esc(p)}</option>`).join("")}</select></div>
+    <div class="err" id="wErr" hidden></div>
+    <button class="btn primary lg" type="submit">${respondent?"ยืนยันและไปต่อ":"เริ่มยืนยันข้อมูล"} →</button>
+    <button class="btn ghost sm" type="button" data-nav="" style="justify-self:center">← เปลี่ยนสาขา</button>
+  </form></div>`;
+}
+function floorsPage(){
+  const cards = S.FLOORS.map(f => {
+    const bl = S.BY_FLOOR[f].filter(b => b.exp.length); const nBrands = bl.reduce((s,b)=>s+b.exp.length,0);
+    const st = floorStatsIn(S, docs, f); const pend = st.tot - st.done;
+    return `<button class="fcard ${st.tot?"":"empty-floor"}" type="button" data-floor="${f}">
+      <div class="thumb"><img src="${S.base}img/floor_${f}.png" alt="" loading="lazy"><span class="tag">${FL(f)}</span></div>
+      <div class="info">
+        <div class="line"><b>${st.tot ? `${bl.length} Blocks · ${nBrands} แบรนด์` : "ยังไม่มีแบรนด์ในไฟล์"}</b><span class="num">ทั้งหมด ${S.BY_FLOOR[f].length} Blocks บนแผนผัง</span></div>
+        ${st.tot?`<div class="bar"><i style="width:${(st.done-st.chg)/st.tot*100}%;background:var(--st-ok)"></i><i style="width:${st.chg/st.tot*100}%;background:var(--st-chg)"></i></div>
+        <div class="stats"><span class="pill pending">รอยืนยัน ${pend}</span><span class="pill ok">ยืนยันแล้ว ${st.done-st.chg}</span>${st.chg?`<span class="pill changed">เปลี่ยนแปลง ${st.chg}</span>`:""}</div>`:`<div class="stats"><span class="pill none">เปิดเพื่อเพิ่มแบรนด์ใน Block</span></div>`}
+      </div></button>`; }).join("");
+  return `<div class="wrap">${demoNote()}<div><h2>เลือกชั้นที่ต้องการยืนยัน</h2><p class="sub">${esc(S.meta.name)} (${S.code}) · ข้อมูลชั้นและ Block มาจาก sheet “brand assignment”</p></div><div class="fgrid">${cards}</div></div>`;
+}
+function bindPage(){
+  const pv = $("#pageView");
+  pv.querySelectorAll("[data-nav]").forEach(b => b.onclick = () => go(b.dataset.nav));
+  pv.querySelectorAll("[data-store]").forEach(b => b.onclick = () => go(`#s${b.dataset.store}-who`));
+  pv.querySelectorAll(".fcard[data-floor]").forEach(b => b.onclick = () => go(`#s${S.code}-f${b.dataset.floor}`));
+  const sq = $("#sq"); if (sq) sq.oninput = () => { ui.sq = sq.value; const p = sq.selectionStart; render(); const n=$("#sq"); n.focus(); n.setSelectionRange(p,p); };
+  const wf = $("#whoForm"); if (wf){ const n=$("#wName"); if (!n.value) n.focus();
+    wf.onsubmit = e => { e.preventDefault(); const name = $("#wName").value.trim().replace(/\s+/g," "), position = $("#wPos").value.trim().replace(/\s+/g," ");
+      if (!name || !position){ const er=$("#wErr"); er.hidden=false; er.textContent = !name ? "กรุณากรอกชื่อ - นามสกุล" : "กรุณาเลือกตำแหน่ง"; (!name?$("#wName"):$("#wPos")).focus(); return; }
+      respondent = {name, position}; lsSet("brandcheck-respondent", respondent); go(`#s${S.code}`); }; }
+  bindAdmin();
+}
+
+/* ================= plan viewer ================= */
+const view = {s:1, x:0, y:0, fit:1, w:1191, h:842};
+const viewer = $("#viewer"), stage = $("#stage"), overlay = $("#overlay");
+function applyView(){ stage.style.transform = `translate(${view.x}px,${view.y}px) scale(${view.s})`; scheduleLabelSize(); }
+function fitView(){
+  const W = viewer.clientWidth, H = viewer.clientHeight; if (!W||!H) return false;
+  const pad = 16, s = Math.min((W-pad*2)/view.w, (H-pad*2)/view.h);
+  view.fit = s; view.s = s; view.x = (W-view.w*s)/2; view.y = (H-view.h*s)/2; applyView(); return true;
+}
+function zoomAt(f, cx, cy){
+  const ns = Math.max(view.fit*0.8, Math.min(view.fit*14, view.s*f)); const k = ns/view.s;
+  view.x = cx - (cx-view.x)*k; view.y = cy - (cy-view.y)*k; view.s = ns; applyView();
+}
+function focusBlock(key){
+  const b = S.BLOCKS.get(key); if (!b||!b.bb) return;
+  const W=viewer.clientWidth,H=viewer.clientHeight; const cx=(b.bb[0]+b.bb[2])/2, cy=(b.bb[1]+b.bb[3])/2;
+  const ns = Math.max(view.s, view.fit*3.5); view.s = ns; view.x = W/2 - cx*ns; view.y = H/2 - cy*ns; applyView();
+}
+let lblRaf=0;
+function scheduleLabelSize(){ cancelAnimationFrame(lblRaf); lblRaf = requestAnimationFrame(()=>{
+  overlay.classList.toggle("labels-off", !(ui.labels && view.s >= view.fit*2.2));
+  overlay.querySelectorAll(".mk text").forEach(t=>{ t.setAttribute("font-size", 11/view.s); t.setAttribute("stroke-width", 3/view.s); t.setAttribute("dy", -3/view.s); });
+});}
+const ptrs = new Map(); let drag=null, downKey=null, moved=0, pinch=null;
+viewer.addEventListener("pointerdown", e => {
+  viewer.setPointerCapture(e.pointerId); ptrs.set(e.pointerId, {x:e.clientX, y:e.clientY});
+  const g = e.target.closest && e.target.closest(".mk"); downKey = g ? g.dataset.key : null; moved = 0;
+  if (ptrs.size===1) drag = {x:e.clientX, y:e.clientY, vx:view.x, vy:view.y};
+  if (ptrs.size===2){ const [a,b]=[...ptrs.values()]; pinch = {d:Math.hypot(a.x-b.x,a.y-b.y), s:view.s}; drag=null; }
+});
+viewer.addEventListener("pointermove", e => {
+  if (!ptrs.has(e.pointerId)) return; ptrs.set(e.pointerId, {x:e.clientX, y:e.clientY});
+  if (pinch && ptrs.size===2){ const [a,b]=[...ptrs.values()]; const r=viewer.getBoundingClientRect(); const d=Math.hypot(a.x-b.x,a.y-b.y); zoomAt((pinch.s*d/pinch.d)/view.s, (a.x+b.x)/2-r.left, (a.y+b.y)/2-r.top); moved=99; return; }
+  if (drag){ const dx=e.clientX-drag.x, dy=e.clientY-drag.y; moved=Math.max(moved,Math.hypot(dx,dy)); if (moved>4){ viewer.classList.add("dragging"); view.x=drag.vx+dx; view.y=drag.vy+dy; applyView(); } }
+});
+function endPtr(e){
+  if (!ptrs.has(e.pointerId)) return; ptrs.delete(e.pointerId); if (ptrs.size<2) pinch=null;
+  if (ptrs.size===0){ viewer.classList.remove("dragging"); if (moved<=4 && downKey) onBlockClick(downKey); drag=null; downKey=null; }
+}
+viewer.addEventListener("pointerup", endPtr); viewer.addEventListener("pointercancel", endPtr);
+viewer.addEventListener("wheel", e => { e.preventDefault(); const r=viewer.getBoundingClientRect(); zoomAt(Math.exp(-e.deltaY*0.0015), e.clientX-r.left, e.clientY-r.top); }, {passive:false});
+$("#zin").onclick = () => zoomAt(1.5, viewer.clientWidth/2, viewer.clientHeight/2);
+$("#zout").onclick = () => zoomAt(1/1.5, viewer.clientWidth/2, viewer.clientHeight/2);
+$("#zfit").onclick = fitView;
+$("#lblToggle").onchange = e => { ui.labels = e.target.checked; scheduleLabelSize(); };
+new ResizeObserver(()=>{ if (view.needFit && viewer.clientWidth>0){ view.needFit = !fitView(); } }).observe(viewer);
+
+let shownPlan = null;
+function renderPlan(){
+  const f = ui.floor, pk = S.code+"/"+f;
+  if (shownPlan !== pk){
+    shownPlan = pk; $("#loading").hidden = false;
+    const vb = S.VB[f] || [1191,842]; view.w = vb[0]; view.h = vb[1];
+    stage.style.width = vb[0]+"px"; stage.style.height = vb[1]+"px"; overlay.setAttribute("viewBox", `0 0 ${vb[0]} ${vb[1]}`);
+    const img = $("#planImg"); img.onload = () => { $("#loading").hidden = true; }; img.src = `${S.base}img/floor_${f}.png`;
+    view.needFit = !fitView();
+  }
+  $("#fname").innerHTML = `ชั้น ${FL(f)}<small>${S.BY_FLOOR[f].length} blocks</small>`;
+  const q = ui.q.trim().toUpperCase(); const parts = [];
+  for (const b of S.BY_FLOOR[f]){
+    if (!b.bb) continue;
+    const [x0,y0,x1,y1] = b.bb; const h=y1-y0, w=x1-x0;
+    let rx0=x0-2.5, ry0=y0-1.8, rw=w+5, rh=h*2.6+3;
+    if (rw<16){ rx0 -= (16-rw)/2; rw=16; } if (rh<10) rh=10;
+    const st = blockStatus(b.key); const cls = ["mk", st]; if (drafts[dk(b.key)]) cls.push("draft"); if (ui.sel===b.key) cls.push("sel");
+    const brands = blockBrands(b.key).filter(Boolean);
+    if (q){ const hit = b.id.includes(q) || brands.some(n => n.toUpperCase().includes(q)); cls.push(hit?"hl":"dim"); }
+    const lbl = brands.slice(0,3).join(", ") + (brands.length>3?" …":"");
+    parts.push(`<g class="${cls.join(" ")}" data-key="${b.key}"><rect class="hit" x="${rx0.toFixed(2)}" y="${ry0.toFixed(2)}" width="${rw.toFixed(2)}" height="${rh.toFixed(2)}" rx="1.6"/>${(ui.sel===b.key||q)?`<rect class="ring" x="${(rx0-1.5).toFixed(2)}" y="${(ry0-1.5).toFixed(2)}" width="${(rw+3).toFixed(2)}" height="${(rh+3).toFixed(2)}" rx="2.4"/>`:""}${lbl?`<text x="${(rx0+rw/2).toFixed(2)}" y="${ry0.toFixed(2)}" text-anchor="middle">${esc(lbl)}</text>`:""}<title>${esc(b.id+(lbl?" — "+lbl:""))}</title></g>`);
+  }
+  overlay.innerHTML = parts.join(""); scheduleLabelSize();
+  const pb = $("#placeBanner");
+  if (ui.placing){ const r = S.ROWS.get(ui.placing); pb.hidden=false; pb.innerHTML = `<span>คลิก Block ที่ <b>${esc(r.b)}</b> อยู่บนแผนผัง</span><button class="btn sm" type="button" id="cancelPlace">ยกเลิก</button>`; $("#cancelPlace").onclick=()=>{ ui.placing=null; renderPlan(); }; viewer.classList.add("placing"); }
+  else { pb.hidden = true; viewer.classList.remove("placing"); }
+}
+function onBlockClick(key){
+  if (ui.placing){
+    const r = ui.placing; ui.placing = null; const w = workingCopy(key), k = "r"+r;
+    if (!w.items[k]){ w.items[k] = {r, name:S.ROWS.get(r).b, src:"new", status:"present", note:""}; w.order.push(k); }
+    drafts[dk(key)] = w; toast(`เพิ่ม ${S.ROWS.get(r).b} ใน ${bLabel(key)} แล้ว — ตอบคำถามให้ครบแล้วกดยืนยัน`);
+  }
+  select(key, false);
+}
+function select(key, pan=true){
+  ui.sel = key; ui.matchFor = null; ui.addQ = "";
+  renderTop(); renderPlan(); renderPanel(); if (pan) requestAnimationFrame(()=>focusBlock(key));
+  if (window.matchMedia("(max-width:900px)").matches) $("#panel").scrollIntoView({behavior:"smooth", block:"start"});
+}
+
+/* ================= panel ================= */
+function renderPanel(){
+  const p = $("#panel");
+  if (ui.sel) return renderBlockPanel(p);
+  p.innerHTML = `<div class="ptabs" role="tablist">
+      <button class="ptab" role="tab" type="button" data-tab="blocks" aria-selected="${ui.tab==="blocks"}">Blocks ชั้น ${FL(ui.floor)}</button>
+      <button class="ptab" role="tab" type="button" data-tab="unassigned" aria-selected="${ui.tab==="unassigned"}">แบรนด์ที่ยังไม่มี Block</button>
+    </div><div class="pbody">${DEMO?demoNote():""}${ui.tab==="blocks"?blocksTab():unassignedTab()}</div>`;
+  p.querySelectorAll(".ptab").forEach(b => b.onclick = () => { ui.tab=b.dataset.tab; renderPanel(); });
+  if (ui.tab==="blocks"){
+    const s = $("#bq"); s.oninput = () => { ui.q = s.value; renderPlan(); $("#blist").innerHTML = blockRows(); bindRows(); };
+    p.querySelectorAll(".chip").forEach(c => c.onclick = () => { ui.filter=c.dataset.f; renderPanel(); });
+    bindRows();
+  } else {
+    const s = $("#uq"); s.oninput = () => { ui.uq = s.value; $("#ulist").innerHTML = unassignedRows(); bindU(); };
+    $("#uzero").onchange = e => { ui.uzero = e.target.checked; $("#ulist").innerHTML = unassignedRows(); bindU(); };
+    bindU();
+  }
+}
+function blocksTab(){
+  const cnt = {all:0,pending:0,done:0,changed:0,none:0};
+  for (const b of S.BY_FLOOR[ui.floor]){ const s=blockStatus(b.key); if (s!=="none") cnt.all++; if (s==="pending") cnt.pending++; if (s==="ok"||s==="changed") cnt.done++; if (s==="changed") cnt.changed++; if (s==="none") cnt.none++; }
+  const chip = (f,l) => `<button class="chip" type="button" data-f="${f}" aria-pressed="${ui.filter===f}">${l} <span class="num">${cnt[f]}</span></button>`;
+  return `<input class="search" id="bq" type="search" placeholder="ค้นหาแบรนด์ หรือ Block ID ในชั้นนี้" value="${esc(ui.q)}" autocomplete="off">
+    <div class="chips">${chip("all","มีแบรนด์")}${chip("pending","รอยืนยัน")}${chip("done","ยืนยันแล้ว")}${chip("changed","เปลี่ยนแปลง")}${chip("none","ไม่มีแบรนด์ในไฟล์")}</div>
+    <div class="blist" id="blist">${blockRows()}</div>`;
+}
+function blockRows(){
+  const q = ui.q.trim().toUpperCase();
+  const list = S.BY_FLOOR[ui.floor].filter(b => {
+    const s = blockStatus(b.key);
+    if (q) return b.id.includes(q) || blockBrands(b.key).some(n => (n||"").toUpperCase().includes(q));
+    if (ui.filter==="all") return s!=="none";
+    if (ui.filter==="pending") return s==="pending";
+    if (ui.filter==="done") return s==="ok"||s==="changed";
+    if (ui.filter==="changed") return s==="changed";
+    return s==="none";
+  });
+  if (!list.length) return `<div class="empty">ไม่พบ Block ที่ตรงกับเงื่อนไข</div>`;
+  return list.slice(0,400).map(b => {
+    const s = drafts[dk(b.key)] ? "draft" : blockStatus(b.key); const br = blockBrands(b.key).filter(Boolean);
+    return `<button class="brow" type="button" data-key="${b.key}"><span class="id">${b.id}<small>${b.ns??"–"} ตร.ม.</small></span>
+      <span class="nm"><b>${br.length?esc(br.join(", ")):'<span style="color:var(--fg-3);font-weight:400">—</span>'}</b><span>${br.length?br.length+" แบรนด์":"ไม่มีแบรนด์ในไฟล์"}${docs[b.key]?.by?.name?" · "+esc(docs[b.key].by.name):""}</span></span>
+      <span class="pill ${s}">${ST_TXT[s]}</span></button>`;
+  }).join("");
+}
+function bindRows(){ document.querySelectorAll(".brow").forEach(b => b.onclick = () => select(b.dataset.key)); }
+function placedRows(){
+  const set = new Set();
+  for (const r of S.ROWS.values()) if (r.f && r.k) set.add(r.r);
+  for (const d of [...Object.values(docs), ...Object.entries(drafts).filter(([k])=>k.startsWith(S.code+"|")).map(([,v])=>v)])
+    for (const it of Object.values(d.items||{})) if (it.r!=null && it.status!=="out") set.add(it.r);
+  return set;
+}
+function unassignedTab(){
+  return `<p class="hint">แบรนด์ในไฟล์ Excel ที่ยังไม่ได้ระบุ Floor/Block เลือก “วางบนแผนผัง” แล้วคลิก Block ที่แบรนด์นั้นอยู่</p>
+    <input class="search" id="uq" type="search" placeholder="ค้นหาแบรนด์" value="${esc(ui.uq)}" autocomplete="off">
+    <label class="row2" style="margin:10px 0;font-size:12.5px;color:var(--fg-2)"><input type="checkbox" id="uzero" ${ui.uzero?"checked":""}> แสดงแบรนด์ทั้งหมดในไฟล์</label>
+    <div id="ulist">${unassignedRows()}</div>`;
+}
+function unassignedRows(){
+  const placed = placedRows(), q = ui.uq.trim().toUpperCase();
+  const list = [...S.ROWS.values()].filter(r => !placed.has(r.r) && (ui.uzero || r.act) && (!q || r.b.toUpperCase().includes(q)));
+  const head = `<p class="hint num">${list.length.toLocaleString()} แบรนด์</p>`;
+  if (!list.length) return head + `<div class="empty">ไม่มีแบรนด์ที่ค้างอยู่</div>`;
+  return head + list.slice(0,200).map(r => `<div class="ubrow"><div style="min-width:0"><b>${esc(r.b)}</b><small>${esc(r.s||"")}</small></div>
+    <button class="btn sm" type="button" data-place="${r.r}">วางบนแผนผัง</button></div>`).join("") + (list.length>200?`<p class="hint">แสดง 200 รายการแรก พิมพ์ค้นหาเพื่อดูเพิ่ม</p>`:"");
+}
+function bindU(){ document.querySelectorAll("[data-place]").forEach(b => b.onclick = () => { ui.placing = +b.dataset.place; renderPlan(); toast("คลิก Block บนแผนผัง"); }); }
+
+function qList(w){
+  const out = [{id:"layout", done: !!w.layout && (w.layout!=="changed" || !!w.layoutNote.trim()), hint: !w.layout ? "เลือกคำตอบ" : "อธิบายว่า Layout เปลี่ยนอย่างไร"}];
+  for (const k of w.order){ const it = w.items[k]; if (!it) continue;
+    out.push({id:k, done: !!it.status && (it.status!=="moved" || S.BLOCKS.has(it.movedTo)), hint: !it.status ? "เลือกคำตอบ" : "ระบุ Block ที่ย้ายไป"}); }
+  return out;
+}
+function applyQ(key){
+  const p = $("#panel"); if (!p || ui.sel!==key) return;
+  const w = workingCopy(key), qs = qList(w); const nDone = qs.filter(q=>q.done).length, firstTodo = qs.find(q=>!q.done);
+  qs.forEach(q => { const el = p.querySelector(`[data-q="${CSS.escape(q.id)}"]`); if (!el) return;
+    el.classList.toggle("todo", !q.done); el.classList.toggle("done", q.done); el.classList.toggle("next", firstTodo===q);
+    const bd = el.querySelector(".qbadge"); if (bd) bd.textContent = q.done ? "✓ ตอบแล้ว" : "ต้องตอบ";
+    const h = el.querySelector(".todo-hint"); if (h){ h.textContent = q.done ? "" : "→ "+q.hint; h.hidden = q.done; } });
+  const pr = $("#qprog"); if (pr){ pr.querySelector(".t b").textContent = `ตอบแล้ว ${nDone} จาก ${qs.length} ข้อ`; pr.querySelector(".t span").textContent = nDone===qs.length ? "พร้อมยืนยัน" : `เหลือ ${qs.length-nDone} ข้อ`; pr.querySelector(".bar i").style.width = (nDone/qs.length*100)+"%"; }
+  const ok = nDone===qs.length; const btn = $("#confirm"); if (btn && !btn.dataset.busy) btn.disabled = !ok;
+  const fl = $("#footLeft"); if (fl) fl.innerHTML = ok ? `<b style="color:var(--st-ok)">ตอบครบแล้ว</b><span class="stamp">กดยืนยันเพื่อบันทึก</span>` : `<b>เหลือ ${qs.length-nDone} ข้อที่ต้องตอบ</b><button class="link" type="button" id="gotoNext" style="justify-self:start">ไปข้อที่ยังไม่ตอบ ↓</button>`;
+  const gn = $("#gotoNext"); if (gn) gn.onclick = () => { const el = p.querySelector(".q.next"); if (el){ el.scrollIntoView({behavior:"smooth", block:"center"}); const b = el.querySelector(".seg button, textarea, input"); if (b) setTimeout(()=>b.focus({preventScroll:true}), 350); } };
+}
+function renderBlockPanel(p){
+  const key = ui.sel, b = S.BLOCKS.get(key), w = workingCopy(key), saved = docs[key];
+  const st = drafts[dk(key)] ? "draft" : blockStatus(key); const inc = incomingMoves(key);
+  let n = 1;
+  const itemHtml = w.order.map(k => { const it = w.items[k]; if (!it) return ""; const row = it.r!=null ? S.ROWS.get(it.r) : null;
+    const srcTxt = it.src==="a" ? "จาก Excel" : "เพิ่มใหม่"; n++;
+    return `<div class="q item ${it.status?"s-"+it.status:""}" data-q="${esc(k)}" data-k="${esc(k)}">
+      <div class="qhead"><span class="qn">${n}</span><div class="grow"><span class="qt">${esc(it.name||"(ไม่ระบุชื่อ)")}</span>
+        <span class="qs">${row ? esc((row.d||"")+" · "+(row.s||"")) : `แบรนด์ใหม่ที่ไม่มีในไฟล์ · <button class="link" type="button" data-act="match">จับคู่กับไฟล์</button>`} · ${srcTxt}</span></div>
+        <span class="qbadge"></span>
+        ${it.src==="new"?`<button class="btn ghost sm" type="button" data-act="del" aria-label="ลบแบรนด์นี้">✕</button>`:""}</div>
+      ${ui.matchFor===k?matchBox():""}
+      <div class="qask">แบรนด์นี้ยังอยู่ใน Block ${b.id} ไหม?</div>
+      <div class="seg" role="group" aria-label="สถานะแบรนด์">${["present","out","moved"].map(s=>`<button type="button" class="${s}" data-act="st" data-v="${s}" aria-pressed="${it.status===s}">${IT_TXT[s]}</button>`).join("")}</div>
+      ${it.status==="moved"?`<div class="row2"><span style="font-size:12.5px;color:var(--fg-2)">ย้ายไป</span>
+        <select data-act="mf" aria-label="ชั้นปลายทาง">${S.FLOORS.map(f=>`<option value="${f}" ${(it.movedTo||key).split("_")[0]===f?"selected":""}>${FL(f)}</option>`).join("")}</select>
+        <input data-act="mb" aria-label="Block ปลายทาง" list="bl_${(it.movedTo||key).split("_")[0]}" placeholder="Block ID" value="${esc((it.movedTo||"").split("_")[1]||"")}" size="8" class="mono">
+        ${it.movedTo && !S.BLOCKS.has(it.movedTo)?`<span style="color:var(--st-out);font-size:12px">ไม่พบ Block นี้</span>`:""}</div>`:""}
+      <span class="todo-hint" hidden></span>
+      <input class="note" data-act="note" placeholder="หมายเหตุ (ไม่บังคับ)" value="${esc(it.note||"")}">
+    </div>`; }).join("");
+  p.innerHTML = `<div class="ptabs"><button class="ptab" type="button" id="back">← รายการ Blocks</button></div>
+  <div class="pbody">
+    <div class="bhead"><div class="grow"><div class="big">${b.id}</div>
+      <div class="meta">${esc(S.meta.name)} · ชั้น ${FL(b.f)} · <span class="num">${b.ns??"–"}</span> ตร.ม.</div></div>
+      <span class="pill ${st}">${ST_TXT[st]}</span></div>
+    ${saved?.confirmedAt?`<p class="stamp">ยืนยันล่าสุด ${fmtTime(saved.confirmedAt)}${saved.by?.name?" โดย "+esc(saved.by.name)+(saved.by.position?" ("+esc(saved.by.position)+")":""):""}</p>`:""}
+    <div class="qprog" id="qprog"><div class="t"><b></b><span class="stamp"></span></div><div class="bar"><i style="background:var(--st-ok)"></i></div></div>
+    ${inc.map(m=>`<div class="incoming"><span><b>${esc(m.it.name)}</b> ถูกระบุว่าย้ายมาจาก ${bLabel(m.from)}</span>${w.items[m.it.r!=null?"r"+m.it.r:"n:"+m.it.name]?"":`<button class="btn sm" type="button" data-inc="${esc(m.from)}" data-r="${m.it.r??""}" data-n="${esc(m.it.name)}">เพิ่มในรายการ Block นี้</button>`}</div>`).join("")}
+    <div class="sect">Layout <span class="req">ต้องตอบ</span><span class="grow"></span></div>
+    <div class="q" data-q="layout">
+      <div class="qhead"><span class="qn">1</span><div class="grow"><span class="qt">Layout ของ Block นี้ยังตรงกับแผนผังไหม?</span><span class="qs">ดูขอบเขตพื้นที่บนแผนผังเทียบกับหน้างาน</span></div><span class="qbadge"></span></div>
+      <div class="seg two" role="group" aria-label="สถานะ Layout"><button type="button" class="same" data-lay="same" aria-pressed="${w.layout==="same"}">ตรงกับแผนผัง</button><button type="button" class="changed" data-lay="changed" aria-pressed="${w.layout==="changed"}">Layout เปลี่ยน</button></div>
+      ${w.layout==="changed"?`<textarea class="note" id="layNote" rows="2" placeholder="อธิบายการเปลี่ยนแปลง เช่น รวม Block กับ 15100, ขยายพื้นที่, แบ่งเป็น 2 ร้าน">${esc(w.layoutNote)}</textarea>`:""}
+      <span class="todo-hint" hidden></span>
+    </div>
+    <div class="sect">แบรนด์ใน Block นี้ <span class="req">ต้องตอบทุกแบรนด์</span><span class="grow"></span>${w.order.length>1?`<button class="link" type="button" id="allPresent">ตอบ “ยังอยู่” ทุกแบรนด์</button>`:""}</div>
+    ${itemHtml || `<p class="hint">ยังไม่มีแบรนด์ใน Block นี้ เพิ่มแบรนด์ได้ด้านล่าง</p>`}
+    <div class="optional">
+      <div class="sect">เพิ่มแบรนด์ใหม่ <span class="opt">ถ้ามี</span><span class="grow"></span></div>
+      <div class="addbox"><input class="search" id="addQ" type="search" placeholder="+ ค้นหาแบรนด์ที่เข้ามาใหม่ใน Block นี้" value="${esc(ui.addQ)}" autocomplete="off"><div class="results" id="addRes">${addResults()}</div></div>
+      <div class="sect">หมายเหตุ Block <span class="opt">ไม่บังคับ</span><span class="grow"></span></div>
+      <textarea class="note" id="remark" rows="2" placeholder="ข้อมูลอื่นที่ควรรู้ เช่น ปิดปรับปรุง, ใช้พื้นที่ร่วมกัน">${esc(w.remark)}</textarea>
+    </div>
+    ${S.FLOORS.map(f=>`<datalist id="bl_${f}">${S.BY_FLOOR[f].map(x=>`<option value="${x.id}"></option>`).join("")}</datalist>`).join("")}
+  </div>
+  <div class="pfoot">
+    <div class="left" id="footLeft"></div>
+    ${drafts[dk(key)]?`<button class="btn ghost sm" type="button" id="discard">ยกเลิกการแก้ไข</button>`:""}
+    <button class="btn primary" type="button" id="confirm" disabled>${saved?.confirmedAt?"บันทึกการแก้ไข":"ยืนยัน Block นี้"}</button>
+  </div>`;
+  bindBlockPanel(p, key); applyQ(key);
+}
+function matchBox(){ return `<div class="addbox"><input class="search" id="matchQ" type="search" placeholder="ค้นหาแบรนด์ในไฟล์ Excel" value="${esc(ui.addQ)}" autocomplete="off"><div class="results" id="matchRes">${searchRows(ui.addQ,"match")}</div></div>`; }
+function searchRows(q, mode){
+  q = (q||"").trim().toUpperCase(); if (!q) return "";
+  const hits = [...S.ROWS.values()].filter(r => r.b.toUpperCase().includes(q)).sort((a,b)=> (b.b.toUpperCase().startsWith(q)) - (a.b.toUpperCase().startsWith(q)) || a.r-b.r).slice(0,12);
+  let h = hits.map(r => `<button class="res" type="button" data-${mode}="${r.r}"><span style="min-width:0"><b>${esc(r.b)}</b><small>${esc((r.d||"")+" · "+(r.s||""))}${r.f?` · ปัจจุบันอยู่ ${FL(r.f)}·${r.k}`:""}</small></span><span></span></button>`).join("");
+  if (mode==="add") h += `<button class="res" type="button" data-addname="1"><span><b>เพิ่ม “${esc(q)}” เป็นแบรนด์ใหม่</b><small>ไม่มีในไฟล์ Excel</small></span><span></span></button>`;
+  return h || `<div class="hint" style="padding:6px 8px">ไม่พบแบรนด์</div>`;
+}
+const addResults = () => searchRows(ui.addQ, "add");
+function mutate(key, fn){ const w = workingCopy(key); fn(w); drafts[dk(key)] = w; }
+function bindBlockPanel(p, key){
+  $("#back").onclick = () => { ui.sel=null; renderPlan(); renderPanel(); };
+  p.querySelectorAll("[data-lay]").forEach(b => b.onclick = () => { mutate(key, w=>{ w.layout=b.dataset.lay; }); rerender(); });
+  const ln = $("#layNote"); if (ln) ln.oninput = () => { mutate(key, w=>{ w.layoutNote=ln.value; }); refreshFoot(key); };
+  $("#remark").oninput = e => { mutate(key, w=>{ w.remark=e.target.value; }); refreshFoot(key); };
+  const ap = $("#allPresent"); if (ap) ap.onclick = () => { mutate(key, w=>{ w.order.forEach(k=>{ if (w.items[k]) w.items[k].status="present"; }); }); rerender(); };
+  p.querySelectorAll(".item").forEach(el => {
+    const k = el.dataset.k;
+    el.querySelectorAll('[data-act="st"]').forEach(b => b.onclick = () => { mutate(key, w=>{ const it=w.items[k]; it.status = it.status===b.dataset.v ? null : b.dataset.v; if (it.status==="moved" && !it.movedTo) it.movedTo = ""; }); rerender(); });
+    const del = el.querySelector('[data-act="del"]'); if (del) del.onclick = () => { mutate(key, w=>{ delete w.items[k]; w.order = w.order.filter(x=>x!==k); }); rerender(); };
+    const mt = el.querySelector('[data-act="match"]'); if (mt) mt.onclick = () => { ui.matchFor = ui.matchFor===k?null:k; ui.addQ = workingCopy(key).items[k].name||""; renderPanel(); const mq=$("#matchQ"); if (mq) mq.focus(); };
+    const nt = el.querySelector('[data-act="note"]'); nt.oninput = () => { mutate(key, w=>{ w.items[k].note = nt.value; }); refreshFoot(key); };
+    const mf = el.querySelector('[data-act="mf"]'), mb = el.querySelector('[data-act="mb"]');
+    if (mf && mb){
+      const upd = () => { mutate(key, w=>{ const id = mb.value.trim(); w.items[k].movedTo = id ? keyOf(mf.value, id.padStart(5,"0")) : ""; }); };
+      mf.onchange = () => { upd(); rerender(); }; mb.onchange = () => { upd(); rerender(); }; mb.oninput = () => { upd(); refreshFoot(key); };
+    }
+  });
+  const mq = $("#matchQ"); if (mq){ mq.oninput = () => { ui.addQ = mq.value; $("#matchRes").innerHTML = searchRows(ui.addQ,"match"); bindMatch(key); }; bindMatch(key); }
+  const aq = $("#addQ"); aq.oninput = () => { ui.addQ = aq.value; $("#addRes").innerHTML = addResults(); bindAdd(key); }; bindAdd(key);
+  p.querySelectorAll("[data-inc]").forEach(b => b.onclick = () => { const r = b.dataset.r ? +b.dataset.r : null; const k = r!=null ? "r"+r : "n:"+b.dataset.n;
+    mutate(key, w=>{ if (!w.items[k]){ w.items[k] = {r, name:b.dataset.n, src:"new", status:"present", note:"ย้ายมาจาก "+bLabel(b.dataset.inc)}; w.order.push(k); } }); rerender(); });
+  const dc = $("#discard"); if (dc) dc.onclick = () => { delete drafts[dk(key)]; rerender(); };
+  $("#confirm").onclick = () => confirmBlock(key);
+}
+function rerender(){ renderTop(); renderPlan(); renderPanel(); }
+function bindAdd(key){
+  document.querySelectorAll("[data-add]").forEach(b => b.onclick = () => { const r = +b.dataset.add, k="r"+r;
+    mutate(key, w=>{ if (!w.items[k]){ w.items[k] = {r, name:S.ROWS.get(r).b, src:"new", status:"present", note:""}; w.order.push(k); } }); ui.addQ=""; rerender(); });
+  document.querySelectorAll("[data-addname]").forEach(b => b.onclick = () => { const nm = $("#addQ").value.trim(); if (!nm) return; const k = "n:"+nm;
+    mutate(key, w=>{ if (!w.items[k]){ w.items[k] = {r:null, name:nm, src:"new", status:"present", note:""}; w.order.push(k); } }); ui.addQ=""; rerender(); });
+}
+function bindMatch(key){
+  document.querySelectorAll("[data-match]").forEach(b => b.onclick = () => { const r = +b.dataset.match, old = ui.matchFor, nk = "r"+r;
+    mutate(key, w=>{ const it = w.items[old]; if (!it) return; const ni = {...it, r, name:S.ROWS.get(r).b, note:(it.note?it.note+"; ":"")+"ชื่อที่พิมพ์: "+it.name};
+      delete w.items[old]; w.items[nk] = ni; w.order = w.order.map(x => x===old?nk:x).filter((x,i,a)=>a.indexOf(x)===i); });
+    ui.matchFor=null; ui.addQ=""; rerender(); });
+}
+function refreshFoot(key){ applyQ(key); if (!$("#discard")) renderPanelSoon(); }
+let rp=0; function renderPanelSoon(){ clearTimeout(rp); rp=setTimeout(()=>{ const a=document.activeElement, id=a&&a.id, ds=a&&a.dataset&&a.dataset.act, k=a&&a.closest&&a.closest(".item")?.dataset.k, pos=a&&a.selectionStart; rerender();
+  const el = id ? document.getElementById(id) : (k&&ds ? document.querySelector(`.item[data-k="${CSS.escape(k)}"] [data-act="${ds}"]`) : null); if (el){ el.focus(); try{ el.setSelectionRange(pos,pos); }catch(e){} } }, 600); }
+
+async function confirmBlock(key){
+  if (!respondent){ go(`#s${S.code}-who`); return; }
+  const w = workingCopy(key), b = S.BLOCKS.get(key), prev = docs[key];
+  const items = {}; w.order.forEach(k => { const it = w.items[k]; if (it) items[k] = {r:it.r??null, name:it.name||"", src:it.src, status:it.status, note:(it.note||"").trim(), movedTo: it.status==="moved" ? it.movedTo : null}; });
+  const now = new Date().toISOString();
+  const body = {f:b.f, id:b.id, layout:w.layout, layoutNote:w.layoutNote.trim(), remark:w.remark.trim(), items, order:w.order.filter(k=>items[k]),
+    confirmedAt:now, by:{name:respondent.name, position:respondent.position}, firstConfirmedAt: prev?.firstConfirmedAt || prev?.confirmedAt || now};
+  const btn = $("#confirm"); if (btn){ btn.disabled = true; btn.dataset.busy = "1"; btn.textContent = "กำลังบันทึก…"; }
+  const code = S.code;
+  try {
+    await API.save(code, key, body);
+    if (S && S.code===code){ docs = {...docs, [key]: body}; delete drafts[dk(key)]; toast(`บันทึก ${bLabel(key)} แล้ว`); ui.sel = null; rerender(); }
+  } catch(e){
+    toast("บันทึกไม่สำเร็จ ตรวจสอบอินเทอร์เน็ตแล้วกดยืนยันอีกครั้ง"); if (btn){ delete btn.dataset.busy; btn.textContent = "ลองบันทึกอีกครั้ง"; btn.disabled = false; }
+  }
+}
+
+/* ================= admin ================= */
+function adminPage(){
+  if (!admin.pin) return `<div class="wrap"><form class="formcard" id="adminForm" novalidate>
+      <div><h2>เข้าสู่หน้า Admin</h2><p class="sub">ใส่รหัสเพื่อดูความคืบหน้าและ Export ข้อมูลทุกสาขา</p></div>
+      ${demoNote()}
+      <div class="field"><label for="aPin">รหัส Admin</label><input id="aPin" type="password" inputmode="numeric" autocomplete="off" placeholder="•••••••"></div>
+      <div class="err" id="aErr" ${admin.err?"":"hidden"}>${esc(admin.err)}</div>
+      <button class="btn primary lg" type="submit">${admin.loading?"กำลังตรวจสอบ…":"เข้าสู่ระบบ"}</button>
+      <button class="btn ghost sm" type="button" data-nav="" style="justify-self:center">← กลับหน้าเลือกสาขา</button>
+    </form></div>`;
+  const rows = STORES.map(s => { const ctx = storeCache[s.code], dm = admin.data?.[s.code] || {};
+    if (!ctx) return `<tr><td>${esc(s.name)} <span class="mono" style="color:var(--fg-3)">${s.code}</span></td><td colspan="6" style="color:var(--fg-3)">กำลังโหลด…</td></tr>`;
+    const st = storeStatsIn(ctx, dm); const vals = Object.values(dm).filter(d=>d.confirmedAt);
+    const people = new Set(vals.map(d => d.by?.name).filter(Boolean)); const last = vals.map(d=>d.confirmedAt).sort().pop();
+    const pct = st.tot ? st.done/st.tot*100 : 0;
+    return `<tr><td><b>${esc(s.name)}</b> <span class="mono" style="color:var(--fg-3)">${s.code}</span></td>
+      <td class="n">${st.tot}</td><td><span class="mini"><i style="width:${pct}%"></i></span><span class="num">${st.done} (${pct.toFixed(0)}%)</span></td>
+      <td class="n">${st.chg}</td><td class="n">${people.size}</td><td>${last?fmtTime(last):"–"}</td>
+      <td><button class="btn sm" type="button" data-exp="${esc(s.code)}">Export</button></td></tr>`; }).join("");
+  const recent = [];
+  for (const s of STORES) for (const [k,d] of Object.entries(admin.data?.[s.code]||{})) if (d.confirmedAt) recent.push({s, k, d});
+  recent.sort((a,b)=> b.d.confirmedAt.localeCompare(a.d.confirmedAt));
+  return `<div class="wrap">${demoNote()}
+    <div class="admin-top"><div class="grow"><h2>Admin · ความคืบหน้าทุกสาขา</h2><p class="sub">ข้อมูลจากผู้ตอบทุกคน ${admin.at?"· อัปเดต "+admin.at.toLocaleTimeString("th-TH",{hour:"2-digit",minute:"2-digit"}):""}</p></div>
+      <button class="btn" type="button" id="aRefresh">${admin.loading?"กำลังโหลด…":"รีเฟรช"}</button>
+      <button class="btn primary" type="button" id="aExpAll">Export Excel ทุกสาขา</button>
+      <button class="btn ghost sm" type="button" id="aLogout">ออกจาก Admin</button></div>
+    <div class="tablewrap"><table class="t"><thead><tr><th>สาขา</th><th>Blocks มีแบรนด์</th><th>ยืนยันแล้ว</th><th>เปลี่ยนแปลง</th><th>ผู้ตอบ</th><th>ล่าสุด</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>
+    <div><h2 style="font-size:16px">การยืนยันล่าสุด</h2></div>
+    <div class="tablewrap"><table class="t"><thead><tr><th>เวลา</th><th>สาขา</th><th>Block</th><th>สถานะ</th><th>ผู้ตอบ</th><th>ตำแหน่ง</th></tr></thead><tbody>
+      ${recent.slice(0,30).map(x => { const ctx = storeCache[x.s.code]; const st = ctx && ctx.BLOCKS.has(x.k) ? blockStatusIn(ctx, admin.data[x.s.code], x.k) : ""; const [f,id] = x.k.split("_");
+        return `<tr><td>${fmtTime(x.d.confirmedAt)}</td><td>${esc(x.s.name)}</td><td class="mono">${esc((ctx?.FLABEL[f]||f)+" · "+id)}</td><td>${st?`<span class="pill ${st}">${ST_TXT[st]}</span>`:""}</td><td>${esc(x.d.by?.name||"")}</td><td>${esc(x.d.by?.position||"")}</td></tr>`; }).join("") || `<tr><td colspan="6" style="color:var(--fg-3)">ยังไม่มีการยืนยัน</td></tr>`}
+    </tbody></table></div></div>`;
+}
+function bindAdmin(){
+  const af = $("#adminForm");
+  if (af){ $("#aPin").focus(); af.onsubmit = async e => { e.preventDefault(); const pin = $("#aPin").value.trim(); if (!pin) return;
+    admin.loading = true; admin.err = ""; render();
+    try { await Promise.all(STORES.map(s => loadStore(s.code))); admin.data = await API.admin(pin, STORES.map(s=>s.code)); admin.pin = pin; admin.at = new Date(); }
+    catch(e){ admin.err = e && (e.code==="bad_pin") ? "รหัสไม่ถูกต้อง" : "เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ ลองอีกครั้ง"; }
+    admin.loading = false; render(); }; }
+  const r = $("#aRefresh"); if (r) r.onclick = adminRefresh;
+  const lo = $("#aLogout"); if (lo) lo.onclick = () => { admin = {pin:null, data:null, loading:false, err:""}; render(); };
+  const ea = $("#aExpAll"); if (ea) ea.onclick = () => exportExcel(STORES.map(s=>s.code));
+  document.querySelectorAll("[data-exp]").forEach(b => b.onclick = () => exportExcel([b.dataset.exp]));
+}
+async function adminRefresh(){
+  if (!admin.pin) return; admin.loading = true; render();
+  try { await Promise.all(STORES.map(s => loadStore(s.code))); admin.data = await API.admin(admin.pin, STORES.map(s=>s.code)); admin.at = new Date(); }
+  catch(e){ if (e && e.code==="bad_pin"){ admin.pin = null; admin.err = "รหัสไม่ถูกต้อง"; } else toast("โหลดข้อมูลไม่สำเร็จ"); }
+  admin.loading = false; render();
+}
+
+/* ================= export ================= */
+function storeSheets(ctx, dmap){
+  const SL = key => { const [f,id] = key.split("_"); return (ctx.FLABEL[f]||f)+" · "+id; };
+  const confirmed = Object.entries(dmap).filter(([k,d]) => d.confirmedAt && ctx.BLOCKS.has(k));
+  const ev = new Map();
+  for (const [k,d] of confirmed) for (const it of Object.values(d.items||{})) if (it.r!=null){ if(!ev.has(it.r)) ev.set(it.r,[]); ev.get(it.r).push({k, d, it}); }
+  const nsOf = (f,id) => ctx.BLOCKS.get(keyOf(f,id))?.ns ?? "";
+  const sh1 = [];
+  for (const r of ctx.ROWS.values()){
+    let f=r.f, k=r.k, date="", rem=[], status="", by="", pos="";
+    const es = ev.get(r.r) || [];
+    if (es.length){
+      const places=[], outs=[]; let latest=null;
+      for (const e of es){
+        const at = new Date(e.d.confirmedAt); if (!latest || at>latest){ latest=at; by=e.d.by?.name||""; pos=e.d.by?.position||""; }
+        if (e.it.status==="present") places.push(e.k);
+        else if (e.it.status==="moved"){ places.push(e.it.movedTo); rem.push(`ย้ายจาก ${SL(e.k)}`); }
+        else if (e.it.status==="out") outs.push(e.k);
+        if (e.it.note) rem.push(e.it.note);
+      }
+      const up = [...new Set(places)];
+      if (up.length){ [f,k] = up[0].split("_"); if (up.length>1) rem.push("อยู่ใน Block อื่นด้วย: "+up.slice(1).map(SL).join(", ")); }
+      else { f=null; k=null; }
+      if (outs.length) rem.push("OUT จาก "+outs.map(SL).join(", "));
+      const changed = es.some(e => e.it.status!=="present" || e.it.src==="new" || e.d.layout==="changed");
+      status = !up.length ? "OUT" : changed ? "CHANGED" : "CONFIRMED"; date = latest;
+    }
+    sh1.push([r.r, r.b, r.d, r.s, ctx.D.location, r.st, (r.b||"")+(r.d||"")+(r.s||""), f||"", k||"", (f&&k)?nsOf(f,k):"", date||"", rem.join("; "), status, by, pos]);
+  }
+  // brands added that are not in the Excel file
+  for (const [k,d] of confirmed) for (const it of Object.values(d.items||{})) if (it.r==null && it.status!=="out"){
+    const [f,id] = (it.status==="moved"?it.movedTo:k).split("_");
+    sh1.push(["", it.name, "", "", ctx.D.location, "", "", f, id, nsOf(f,id), new Date(d.confirmedAt), ["แบรนด์ใหม่ (ไม่มีในไฟล์)", it.note].filter(Boolean).join("; "), "NEW", d.by?.name||"", d.by?.position||""]);
+  }
+  const sh2 = []; const SRC = {a:"Excel pre-fill", p:"Layout", new:"Added"}; const BS = {present:"STILL HERE", out:"OUT", moved:"MOVED"};
+  for (const f of ctx.FLOORS) for (const b of ctx.BY_FLOOR[f]){
+    const d = dmap[b.key]; const st = blockStatusIn(ctx, dmap, b.key);
+    if (st==="none" && !d) continue;
+    const base = [ctx.code+" - "+ctx.meta.name, b.f, b.id, b.ns??"", st==="ok"?"CONFIRMED":st==="changed"?"CHANGED":st==="pending"?"PENDING":"NO BRAND"];
+    if (d && d.confirmedAt){
+      const its = (d.order||Object.keys(d.items||{})).map(k=>d.items[k]).filter(Boolean);
+      for (const it of (its.length ? its : [null])){ const r = it&&it.r!=null ? ctx.ROWS.get(it.r) : null; const mt = it&&it.movedTo ? it.movedTo.split("_") : ["",""];
+        sh2.push([...base, d.layout==="changed"?"CHANGED":"SAME", d.layoutNote||"", d.remark||"", it?it.name:"", r?.d||"", r?.s||"", it?SRC[it.src]||"":"", it?BS[it.status]||"":"", mt[0], mt[1], it?it.note||"":"", d.by?.name||"", d.by?.position||"", new Date(d.confirmedAt)]); }
+    } else for (const e of b.exp){ const r = ctx.ROWS.get(e.r);
+      sh2.push([...base, "", "", "", r?r.b:"", r?.d||"", r?.s||"", SRC[e.src], "", "", "", "", "", "", ""]); }
+  }
+  return {sh1, sh2};
+}
+async function exportExcel(codes){
+  if (!window.XLSX){ toast("ยังโหลดตัวสร้างไฟล์ Excel ไม่เสร็จ ลองอีกครั้ง"); return; }
+  if (!admin.pin){ toast("ต้องเข้าสู่หน้า Admin ก่อน"); return; }
+  try { admin.data = await API.admin(admin.pin, STORES.map(s=>s.code)); admin.at = new Date(); } catch(e){ toast("โหลดข้อมูลล่าสุดไม่ได้ ใช้ข้อมูลที่มีอยู่"); }
+  const ctxs = await Promise.all(codes.map(loadStore));
+  const H1 = ["Excel row", ...ctxs[0].D.cols, "Check status", "Confirmed by", "Position"];
+  const H2 = ["Store","Floor","Block_id","NS (sqm)","Block status","Layout","Layout note","Block remark","Brand Group","Department","Subdepartment","Source","Brand status","Moved to Floor","Moved to Block","Brand note","Confirmed by","Position","Confirmed at"];
+  const a1 = [H1], a2 = [H2];
+  for (const ctx of ctxs){ const {sh1, sh2} = storeSheets(ctx, admin.data?.[ctx.code] || {}); a1.push(...sh1); a2.push(...sh2); }
+  const wb = XLSX.utils.book_new();
+  const ws1 = XLSX.utils.aoa_to_sheet(a1, {cellDates:true}); ws1["!cols"] = [{wch:9},{wch:28},{wch:22},{wch:30},{wch:12},{wch:20},{wch:30},{wch:6},{wch:9},{wch:8},{wch:12},{wch:40},{wch:12},{wch:20},{wch:18}];
+  const ws2 = XLSX.utils.aoa_to_sheet(a2, {cellDates:true}); ws2["!cols"] = [{wch:16},{wch:6},{wch:9},{wch:8},{wch:12},{wch:9},{wch:30},{wch:30},{wch:26},{wch:20},{wch:28},{wch:13},{wch:12},{wch:8},{wch:9},{wch:30},{wch:20},{wch:18},{wch:12}];
+  for (const ws of [ws1, ws2]){ for (const c in ws){ if (c[0]!=="!" && ws[c].t==="d") ws[c].z = "yyyy-mm-dd"; } ws["!autofilter"] = {ref: ws["!ref"]}; }
+  XLSX.utils.book_append_sheet(wb, ws1, "brand assignment");
+  XLSX.utils.book_append_sheet(wb, ws2, "block confirmation");
+  const buf = XLSX.write(wb, {bookType:"xlsx", type:"array", cellDates:true});
+  const stamp = new Date().toISOString().slice(0,10).replace(/-/g,"");
+  const fname = codes.length===1 ? `Brand assignment - ${ctxs[0].meta.name}_confirmed_${stamp}.xlsx` : `Brand assignment - All stores_confirmed_${stamp}.xlsx`;
+  await saveFile(fname, buf);
+}
+async function saveFile(fname, buf){
+  const blob = new Blob([buf], {type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});
+  let dl = null; try { dl = window.claude?.use ? await window.claude.use("downloads") : null; } catch(e){}
+  if (dl){ try { await dl.save({filename:fname, data:blob}); toast("ส่งไฟล์ Excel ให้ดาวน์โหลดแล้ว"); } catch(e){ if (e?.code!=="declined") toast("Export ไม่สำเร็จ"); } return; }
+  const url = URL.createObjectURL(blob); const a = document.createElement("a"); a.href = url; a.download = fname; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 4000); toast("ดาวน์โหลดไฟล์ Excel แล้ว");
+}
+
+/* ================= misc ================= */
+let tt=0; function toast(m){ const t=$("#toast"); t.textContent=m; t.hidden=false; clearTimeout(tt); tt=setTimeout(()=>t.hidden=true, 2800); }
+document.addEventListener("keydown", e => { if (e.key==="Escape" && ui.view==="plan"){ if (ui.placing){ ui.placing=null; renderPlan(); } else if (ui.sel && !/INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName)){ ui.sel=null; renderPlan(); renderPanel(); } } });
+window.addEventListener("beforeunload", e => { if (Object.keys(drafts).length){ e.preventDefault(); e.returnValue = ""; } });
+
+loadStores().then(route).catch(e => { $("#pageView").innerHTML = `<div class="wrap"><div class="empty">โหลดรายชื่อสาขาไม่สำเร็จ (stores.json)</div></div>`; console.error(e); });
+})();
+</script>
+
+</body>
+</html>
