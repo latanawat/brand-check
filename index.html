@@ -256,6 +256,7 @@ button{cursor:pointer}
   .legend{font-size:11px;max-width:calc(100% - 70px)}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+html,body{margin:0}
 
 /* --- multi-store additions --- */
 .app.page-mode{grid-template-rows:auto 1fr}
@@ -300,6 +301,9 @@ table.t tr:last-child td{border-bottom:0}
 .demo{background:var(--st-pending-soft);color:var(--fg);border:1px solid color-mix(in srgb,var(--st-pending) 40%,var(--line));border-radius:10px;padding:8px 12px;font-size:12.5px}
 .footlink{display:flex;justify-content:center;padding-top:8px}
 .sync{font-size:12px;color:var(--fg-3)}
+.newdept{display:grid;gap:6px}
+.newdept select{border:1px solid var(--line-2);border-radius:7px;padding:7px 9px;background:var(--surface);width:100%;min-width:0}
+.newdept select:disabled{opacity:.5}
 </style>
 </head>
 <body>
@@ -406,6 +410,9 @@ async function loadStore(code){
   for (const f of D.floors) ctx.BY_FLOOR[f] = [];
   for (const [f,id,ns,rows,bb] of D.blocks){ const o = {f,id,ns,bb,key:keyOf(f,id), exp:rows.map(r=>({r, src:"a"}))}; ctx.BLOCKS.set(o.key,o); (ctx.BY_FLOOR[f] ||= []).push(o); }
   for (const f of D.floors) ctx.BY_FLOOR[f].sort((a,b)=>a.id.localeCompare(b.id));
+  ctx.DEPT_SUBS = {};
+  for (const r of ctx.ROWS.values()) if (r.d && r.s) (ctx.DEPT_SUBS[r.d] ||= new Set()).add(r.s);
+  ctx.DEPTS = Object.keys(ctx.DEPT_SUBS).sort();
   storeCache[code] = ctx; return ctx;
 }
 const FL = f => S?.FLABEL[f] || f;
@@ -734,7 +741,9 @@ function bindU(){ document.querySelectorAll("[data-place]").forEach(b => b.oncli
 function qList(w){
   const out = [{id:"layout", done: !!w.layout && (w.layout!=="changed" || !!w.layoutNote.trim()), hint: !w.layout ? "เลือกคำตอบ" : "อธิบายว่า Layout เปลี่ยนอย่างไร"}];
   for (const k of w.order){ const it = w.items[k]; if (!it) continue;
-    out.push({id:k, done: !!it.status && (it.status!=="moved" || S.BLOCKS.has(it.movedTo)), hint: !it.status ? "เลือกคำตอบ" : "ระบุ Block ที่ย้ายไป"}); }
+    const needDept = it.r==null && !(it.d && it.s);
+    out.push({id:k, done: !!it.status && (it.status!=="moved" || S.BLOCKS.has(it.movedTo)) && !needDept,
+      hint: !it.status ? "เลือกคำตอบ" : (it.status==="moved" && !S.BLOCKS.has(it.movedTo)) ? "ระบุ Block ที่ย้ายไป" : "เลือก Department และ Subdepartment"}); }
   return out;
 }
 function applyQ(key){
@@ -757,10 +766,13 @@ function renderBlockPanel(p){
     const srcTxt = it.src==="a" ? "จาก Excel" : "เพิ่มใหม่"; n++;
     return `<div class="q item ${it.status?"s-"+it.status:""}" data-q="${esc(k)}" data-k="${esc(k)}">
       <div class="qhead"><span class="qn">${n}</span><div class="grow"><span class="qt">${esc(it.name||"(ไม่ระบุชื่อ)")}</span>
-        <span class="qs">${row ? esc((row.d||"")+" · "+(row.s||"")) : `แบรนด์ใหม่ที่ไม่มีในไฟล์ · <button class="link" type="button" data-act="match">จับคู่กับไฟล์</button>`} · ${srcTxt}</span></div>
+        <span class="qs">${row ? esc((row.d||"")+" · "+(row.s||"")) : `แบรนด์ใหม่ที่ไม่มีในไฟล์ · <button class="link" type="button" data-act="match">มีในไฟล์? จับคู่</button>`} · ${srcTxt}</span></div>
         <span class="qbadge"></span>
         ${it.src==="new"?`<button class="btn ghost sm" type="button" data-act="del" aria-label="ลบแบรนด์นี้">✕</button>`:""}</div>
       ${ui.matchFor===k?matchBox():""}
+      ${it.r==null?`<div class="newdept"><div class="qask">แบรนด์นี้อยู่ Department / Subdepartment ไหน?</div>
+        <select data-act="nd" aria-label="Department"><option value="">เลือก Department</option>${S.DEPTS.map(dp=>`<option value="${esc(dp)}" ${it.d===dp?"selected":""}>${esc(dp)}</option>`).join("")}</select>
+        <select data-act="ns" aria-label="Subdepartment" ${it.d?"":"disabled"}><option value="">เลือก Subdepartment</option>${it.d?[...(S.DEPT_SUBS[it.d]||[])].sort().map(sb=>`<option value="${esc(sb)}" ${it.s===sb?"selected":""}>${esc(sb)}</option>`).join(""):""}</select></div>`:""}
       <div class="qask">แบรนด์นี้ยังอยู่ใน Block ${b.id} ไหม?</div>
       <div class="seg" role="group" aria-label="สถานะแบรนด์">${["present","out","moved"].map(s=>`<button type="button" class="${s}" data-act="st" data-v="${s}" aria-pressed="${it.status===s}">${IT_TXT[s]}</button>`).join("")}</div>
       ${it.status==="moved"?`<div class="row2"><span style="font-size:12.5px;color:var(--fg-2)">ย้ายไป</span>
@@ -823,6 +835,9 @@ function bindBlockPanel(p, key){
     el.querySelectorAll('[data-act="st"]').forEach(b => b.onclick = () => { mutate(key, w=>{ const it=w.items[k]; it.status = it.status===b.dataset.v ? null : b.dataset.v; if (it.status==="moved" && !it.movedTo) it.movedTo = ""; }); rerender(); });
     const del = el.querySelector('[data-act="del"]'); if (del) del.onclick = () => { mutate(key, w=>{ delete w.items[k]; w.order = w.order.filter(x=>x!==k); }); rerender(); };
     const mt = el.querySelector('[data-act="match"]'); if (mt) mt.onclick = () => { ui.matchFor = ui.matchFor===k?null:k; ui.addQ = workingCopy(key).items[k].name||""; renderPanel(); const mq=$("#matchQ"); if (mq) mq.focus(); };
+    const nd = el.querySelector('[data-act="nd"]'), nsel = el.querySelector('[data-act="ns"]');
+    if (nd) nd.onchange = () => { mutate(key, w=>{ w.items[k].d = nd.value; w.items[k].s = ""; }); rerender(); };
+    if (nsel) nsel.onchange = () => { mutate(key, w=>{ w.items[k].s = nsel.value; }); rerender(); };
     const nt = el.querySelector('[data-act="note"]'); nt.oninput = () => { mutate(key, w=>{ w.items[k].note = nt.value; }); refreshFoot(key); };
     const mf = el.querySelector('[data-act="mf"]'), mb = el.querySelector('[data-act="mb"]');
     if (mf && mb){
@@ -842,7 +857,8 @@ function bindAdd(key){
   document.querySelectorAll("[data-add]").forEach(b => b.onclick = () => { const r = +b.dataset.add, k="r"+r;
     mutate(key, w=>{ if (!w.items[k]){ w.items[k] = {r, name:S.ROWS.get(r).b, src:"new", status:"present", note:""}; w.order.push(k); } }); ui.addQ=""; rerender(); });
   document.querySelectorAll("[data-addname]").forEach(b => b.onclick = () => { const nm = $("#addQ").value.trim(); if (!nm) return; const k = "n:"+nm;
-    mutate(key, w=>{ if (!w.items[k]){ w.items[k] = {r:null, name:nm, src:"new", status:"present", note:""}; w.order.push(k); } }); ui.addQ=""; rerender(); });
+    mutate(key, w=>{ if (!w.items[k]){ w.items[k] = {r:null, name:nm, src:"new", status:"present", note:"", d:"", s:""}; w.order.push(k); } }); ui.addQ=""; rerender();
+    toast("เลือก Department และ Subdepartment ของแบรนด์ใหม่"); });
 }
 function bindMatch(key){
   document.querySelectorAll("[data-match]").forEach(b => b.onclick = () => { const r = +b.dataset.match, old = ui.matchFor, nk = "r"+r;
@@ -857,7 +873,7 @@ let rp=0; function renderPanelSoon(){ clearTimeout(rp); rp=setTimeout(()=>{ cons
 async function confirmBlock(key){
   if (!respondent){ go(`#s${S.code}-who`); return; }
   const w = workingCopy(key), b = S.BLOCKS.get(key), prev = docs[key];
-  const items = {}; w.order.forEach(k => { const it = w.items[k]; if (it) items[k] = {r:it.r??null, name:it.name||"", src:it.src, status:it.status, note:(it.note||"").trim(), movedTo: it.status==="moved" ? it.movedTo : null}; });
+  const items = {}; w.order.forEach(k => { const it = w.items[k]; if (it) items[k] = {r:it.r??null, name:it.name||"", src:it.src, status:it.status, note:(it.note||"").trim(), movedTo: it.status==="moved" ? it.movedTo : null, ...(it.r==null ? {d:it.d||"", s:it.s||""} : {})}; });
   const now = new Date().toISOString();
   const body = {f:b.f, id:b.id, layout:w.layout, layoutNote:w.layoutNote.trim(), remark:w.remark.trim(), items, order:w.order.filter(k=>items[k]),
     confirmedAt:now, by:{name:respondent.name, position:respondent.position}, firstConfirmedAt: prev?.firstConfirmedAt || prev?.confirmedAt || now};
@@ -956,7 +972,7 @@ function storeSheets(ctx, dmap){
   // brands added that are not in the Excel file
   for (const [k,d] of confirmed) for (const it of Object.values(d.items||{})) if (it.r==null && it.status!=="out"){
     const [f,id] = (it.status==="moved"?it.movedTo:k).split("_");
-    sh1.push(["", it.name, "", "", ctx.D.location, "", "", f, id, nsOf(f,id), new Date(d.confirmedAt), ["แบรนด์ใหม่ (ไม่มีในไฟล์)", it.note].filter(Boolean).join("; "), "NEW", d.by?.name||"", d.by?.position||""]);
+    sh1.push(["", it.name, it.d||"", it.s||"", ctx.D.location, ctx.D.stores.find(x=>x.startsWith(ctx.code))||`${ctx.code} - ${ctx.meta.name}`, (it.name||"")+(it.d||"")+(it.s||""), f, id, nsOf(f,id), new Date(d.confirmedAt), ["แบรนด์ใหม่ (ไม่มีในไฟล์)", it.note].filter(Boolean).join("; "), "NEW", d.by?.name||"", d.by?.position||""]);
   }
   const sh2 = []; const SRC = {a:"Excel pre-fill", p:"Layout", new:"Added"}; const BS = {present:"STILL HERE", out:"OUT", moved:"MOVED"};
   for (const f of ctx.FLOORS) for (const b of ctx.BY_FLOOR[f]){
@@ -966,7 +982,7 @@ function storeSheets(ctx, dmap){
     if (d && d.confirmedAt){
       const its = (d.order||Object.keys(d.items||{})).map(k=>d.items[k]).filter(Boolean);
       for (const it of (its.length ? its : [null])){ const r = it&&it.r!=null ? ctx.ROWS.get(it.r) : null; const mt = it&&it.movedTo ? it.movedTo.split("_") : ["",""];
-        sh2.push([...base, d.layout==="changed"?"CHANGED":"SAME", d.layoutNote||"", d.remark||"", it?it.name:"", r?.d||"", r?.s||"", it?SRC[it.src]||"":"", it?BS[it.status]||"":"", mt[0], mt[1], it?it.note||"":"", d.by?.name||"", d.by?.position||"", new Date(d.confirmedAt)]); }
+        sh2.push([...base, d.layout==="changed"?"CHANGED":"SAME", d.layoutNote||"", d.remark||"", it?it.name:"", r?.d||it?.d||"", r?.s||it?.s||"", it?SRC[it.src]||"":"", it?BS[it.status]||"":"", mt[0], mt[1], it?it.note||"":"", d.by?.name||"", d.by?.position||"", new Date(d.confirmedAt)]); }
     } else for (const e of b.exp){ const r = ctx.ROWS.get(e.r);
       sh2.push([...base, "", "", "", r?r.b:"", r?.d||"", r?.s||"", SRC[e.src], "", "", "", "", "", "", ""]); }
   }
