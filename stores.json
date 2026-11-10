@@ -9,6 +9,24 @@
   "brands": 252
  },
  {
+  "code": "10104",
+  "name": "Lardprao",
+  "nameTh": "ลาดพร้าว",
+  "planDate": "20261101",
+  "floors": 5,
+  "blocks": 153,
+  "brands": 173
+ },
+ {
+  "code": "10107",
+  "name": "Rangsit",
+  "nameTh": "รังสิต",
+  "planDate": "20261101",
+  "floors": 4,
+  "blocks": 73,
+  "brands": 74
+ },
+ {
   "code": "10110",
   "name": "Pinklao",
   "nameTh": "ปิ่นเกล้า",
@@ -25,6 +43,15 @@
   "floors": 7,
   "blocks": 166,
   "brands": 191
+ },
+ {
+  "code": "10116",
+  "name": "Bangna",
+  "nameTh": "บางนา",
+  "planDate": "20261101",
+  "floors": 5,
+  "blocks": 232,
+  "brands": 284
  },
  {
   "code": "10121",
@@ -70,5 +97,14 @@
   "floors": 3,
   "blocks": 113,
   "brands": 113
+ },
+ {
+  "code": "10166",
+  "name": "Khonkaen",
+  "nameTh": "ขอนแก่น",
+  "planDate": "20261101",
+  "floors": 5,
+  "blocks": 109,
+  "brands": 129
  }
 ]

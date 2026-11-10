@@ -948,26 +948,31 @@ function storeSheets(ctx, dmap){
   for (const [k,d] of confirmed) for (const it of Object.values(d.items||{})) if (it.r!=null){ if(!ev.has(it.r)) ev.set(it.r,[]); ev.get(it.r).push({k, d, it}); }
   const nsOf = (f,id) => ctx.BLOCKS.get(keyOf(f,id))?.ns ?? "";
   const sh1 = [];
+  // One row per brand × block. A brand confirmed in several blocks (or moved / out) gets one row for each block.
   for (const r of ctx.ROWS.values()){
-    let f=r.f, k=r.k, date="", rem=[], status="", by="", pos="";
+    const base = [r.r, r.b, r.d, r.s, ctx.D.location, r.st, (r.b||"")+(r.d||"")+(r.s||"")];
     const es = ev.get(r.r) || [];
-    if (es.length){
-      const places=[], outs=[]; let latest=null;
-      for (const e of es){
-        const at = new Date(e.d.confirmedAt); if (!latest || at>latest){ latest=at; by=e.d.by?.name||""; pos=e.d.by?.position||""; }
-        if (e.it.status==="present") places.push(e.k);
-        else if (e.it.status==="moved"){ places.push(e.it.movedTo); rem.push(`ย้ายจาก ${SL(e.k)}`); }
-        else if (e.it.status==="out") outs.push(e.k);
-        if (e.it.note) rem.push(e.it.note);
-      }
-      const up = [...new Set(places)];
-      if (up.length){ [f,k] = up[0].split("_"); if (up.length>1) rem.push("อยู่ใน Block อื่นด้วย: "+up.slice(1).map(SL).join(", ")); }
-      else { f=null; k=null; }
-      if (outs.length) rem.push("OUT จาก "+outs.map(SL).join(", "));
-      const changed = es.some(e => e.it.status!=="present" || e.it.src==="new" || e.d.layout==="changed");
-      status = !up.length ? "OUT" : changed ? "CHANGED" : "CONFIRMED"; date = latest;
+    if (!es.length){ sh1.push([...base, r.f||"", r.k||"", (r.f&&r.k)?nsOf(r.f,r.k):"", "", "", "", "", ""]); continue; }
+    const recs = new Map();
+    const rec = (key, e) => { if (!recs.has(key)) recs.set(key, {key, place:e.place, d:e.d, notes:[], st:new Set()}); const x = recs.get(key);
+      if (new Date(e.d.confirmedAt) > new Date(x.d.confirmedAt)) x.d = e.d; return x; };
+    for (const e of es){
+      const it = e.it;
+      if (it.status==="out"){ const x = rec("out|"+e.k, {place:e.k, d:e.d}); x.st.add("OUT"); if (it.note) x.notes.push(it.note); continue; }
+      const place = it.status==="moved" ? it.movedTo : e.k;
+      const x = rec("in|"+place, {place, d:e.d});
+      if (it.status==="moved"){ x.st.add("MOVED"); x.notes.push(`ย้ายจาก ${SL(e.k)}`); }
+      else if (it.src==="new") x.st.add("ADDED");
+      else x.st.add(e.d.layout==="changed" ? "CHANGED" : "CONFIRMED");
+      if (it.note) x.notes.push(it.note);
     }
-    sh1.push([r.r, r.b, r.d, r.s, ctx.D.location, r.st, (r.b||"")+(r.d||"")+(r.s||""), f||"", k||"", (f&&k)?nsOf(f,k):"", date||"", rem.join("; "), status, by, pos]);
+    const order = ["MOVED","ADDED","CHANGED","CONFIRMED","OUT"];
+    const list = [...recs.values()].sort((a,b) => (a.place===keyOf(r.f,r.k) ? -1 : 0) - (b.place===keyOf(r.f,r.k) ? -1 : 0) || a.place.localeCompare(b.place));
+    for (const x of list){
+      const [f,k] = x.place.split("_");
+      const status = order.find(o => x.st.has(o));
+      sh1.push([...base, f, k, nsOf(f,k), new Date(x.d.confirmedAt), [...new Set(x.notes)].join("; "), status, x.d.by?.name||"", x.d.by?.position||""]);
+    }
   }
   // brands added that are not in the Excel file
   for (const [k,d] of confirmed) for (const it of Object.values(d.items||{})) if (it.r==null && it.status!=="out"){
