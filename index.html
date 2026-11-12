@@ -351,6 +351,7 @@ table.t tr:last-child td{border-bottom:0}
 
 <script src="config.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
 (() => {
 const CFG = Object.assign({API_URL:"", DEMO_ADMIN_CODE:"7777777", REFRESH_SECONDS:45}, window.BRAND_CHECK_CONFIG || {});
@@ -383,8 +384,11 @@ const API = DEMO ? {
     const j = await r.json(); if (!j.ok) throw {code:j.error||"error"}; return true;
   },
   async admin(pin){
-    const r = await fetch(CFG.API_URL, {method:"POST", headers:{"Content-Type":"text/plain;charset=utf-8"}, body:JSON.stringify({action:"admin", pin})});
-    const j = await r.json(); if (!j.ok) throw {code:j.error||"error"}; return j.stores || {};
+    let r, j;
+    try { r = await fetch(CFG.API_URL, {method:"POST", headers:{"Content-Type":"text/plain;charset=utf-8"}, body:JSON.stringify({action:"admin", pin})}); }
+    catch(e){ throw {code:"network"}; }
+    try { j = await r.json(); } catch(e){ throw {code:"not_json", status:r.status}; }
+    if (!j.ok) throw {code:j.error||"error"}; return j.stores || {};
   },
 };
 
@@ -564,13 +568,15 @@ function floorsPage(){
         ${st.tot?`<div class="bar"><i style="width:${(st.done-st.chg)/st.tot*100}%;background:var(--st-ok)"></i><i style="width:${st.chg/st.tot*100}%;background:var(--st-chg)"></i></div>
         <div class="stats"><span class="pill pending">รอยืนยัน ${pend}</span><span class="pill ok">ยืนยันแล้ว ${st.done-st.chg}</span>${st.chg?`<span class="pill changed">เปลี่ยนแปลง ${st.chg}</span>`:""}</div>`:`<div class="stats"><span class="pill none">เปิดเพื่อเพิ่มแบรนด์ใน Block</span></div>`}
       </div></button>`; }).join("");
-  return `<div class="wrap">${demoNote()}<div><h2>เลือกชั้นที่ต้องการยืนยัน</h2><p class="sub">${esc(S.meta.name)} (${S.code}) · ข้อมูลชั้นและ Block มาจาก sheet “brand assignment”</p></div><div class="fgrid">${cards}</div></div>`;
+  return `<div class="wrap">${demoNote()}<div class="admin-top"><div class="grow"><h2>เลือกชั้นที่ต้องการยืนยัน</h2><p class="sub">${esc(S.meta.name)} (${S.code}) · ข้อมูลชั้นและ Block มาจาก sheet “brand assignment”</p></div>
+    <button class="btn" type="button" data-layout="${esc(S.code)}">ดาวน์โหลด Layout (PDF)</button></div><div class="fgrid">${cards}</div></div>`;
 }
 function bindPage(){
   const pv = $("#pageView");
   pv.querySelectorAll("[data-nav]").forEach(b => b.onclick = () => go(b.dataset.nav));
   pv.querySelectorAll("[data-store]").forEach(b => b.onclick = () => go(`#s${b.dataset.store}-who`));
   pv.querySelectorAll(".fcard[data-floor]").forEach(b => b.onclick = () => go(`#s${S.code}-f${b.dataset.floor}`));
+  pv.querySelectorAll("[data-layout]").forEach(b => b.onclick = () => exportLayout(b.dataset.layout, b));
   const sq = $("#sq"); if (sq) sq.oninput = () => { ui.sq = sq.value; const p = sq.selectionStart; render(); const n=$("#sq"); n.focus(); n.setSelectionRange(p,p); };
   const wf = $("#whoForm"); if (wf){ const n=$("#wName"); if (!n.value) n.focus();
     wf.onsubmit = e => { e.preventDefault(); const name = $("#wName").value.trim().replace(/\s+/g," "), position = $("#wPos").value.trim().replace(/\s+/g," ");
@@ -898,14 +904,14 @@ function adminPage(){
       <button class="btn ghost sm" type="button" data-nav="" style="justify-self:center">← กลับหน้าเลือกสาขา</button>
     </form></div>`;
   const rows = STORES.map(s => { const ctx = storeCache[s.code], dm = admin.data?.[s.code] || {};
-    if (!ctx) return `<tr><td>${esc(s.name)} <span class="mono" style="color:var(--fg-3)">${s.code}</span></td><td colspan="6" style="color:var(--fg-3)">กำลังโหลด…</td></tr>`;
+    if (!ctx) return `<tr><td>${esc(s.name)} <span class="mono" style="color:var(--fg-3)">${s.code}</span></td><td colspan="6" style="color:${(admin.missing||[]).includes(s.code)?"var(--st-out)":"var(--fg-3)"}">${(admin.missing||[]).includes(s.code)?`โหลดข้อมูลสาขาไม่ได้ — ตรวจว่าอัปโหลดโฟลเดอร์ stores/${s.code} ขึ้น GitHub แล้ว`:"กำลังโหลด…"}</td></tr>`;
     const st = storeStatsIn(ctx, dm); const vals = Object.values(dm).filter(d=>d.confirmedAt);
     const people = new Set(vals.map(d => d.by?.name).filter(Boolean)); const last = vals.map(d=>d.confirmedAt).sort().pop();
     const pct = st.tot ? st.done/st.tot*100 : 0;
     return `<tr><td><b>${esc(s.name)}</b> <span class="mono" style="color:var(--fg-3)">${s.code}</span></td>
       <td class="n">${st.tot}</td><td><span class="mini"><i style="width:${pct}%"></i></span><span class="num">${st.done} (${pct.toFixed(0)}%)</span></td>
       <td class="n">${st.chg}</td><td class="n">${people.size}</td><td>${last?fmtTime(last):"–"}</td>
-      <td><button class="btn sm" type="button" data-exp="${esc(s.code)}">Export</button></td></tr>`; }).join("");
+      <td style="display:flex;gap:6px"><button class="btn sm" type="button" data-exp="${esc(s.code)}">Excel</button><button class="btn sm" type="button" data-layout="${esc(s.code)}">Layout PDF</button></td></tr>`; }).join("");
   const recent = [];
   for (const s of STORES) for (const [k,d] of Object.entries(admin.data?.[s.code]||{})) if (d.confirmedAt) recent.push({s, k, d});
   recent.sort((a,b)=> b.d.confirmedAt.localeCompare(a.d.confirmedAt));
@@ -921,12 +927,23 @@ function adminPage(){
         return `<tr><td>${fmtTime(x.d.confirmedAt)}</td><td>${esc(x.s.name)}</td><td class="mono">${esc((ctx?.FLABEL[f]||f)+" · "+id)}</td><td>${st?`<span class="pill ${st}">${ST_TXT[st]}</span>`:""}</td><td>${esc(x.d.by?.name||"")}</td><td>${esc(x.d.by?.position||"")}</td></tr>`; }).join("") || `<tr><td colspan="6" style="color:var(--fg-3)">ยังไม่มีการยืนยัน</td></tr>`}
     </tbody></table></div></div>`;
 }
+function adminErrMsg(e){
+  if (e && e.code==="bad_pin") return "รหัสไม่ถูกต้อง";
+  if (e && e.code==="network") return "เชื่อมต่อ Apps Script ไม่ได้ — ตรวจ API_URL ใน config.js และอินเทอร์เน็ต";
+  if (e && e.code==="not_json") return "Apps Script ตอบกลับไม่ถูกต้อง — ตรวจว่า Deploy แบบ Web app, Who has access: Anyone และเป็น New version ล่าสุด";
+  return "Apps Script แจ้งข้อผิดพลาด: " + (e && e.code || "ไม่ทราบสาเหตุ");
+}
+async function loadAllStores(){
+  const res = await Promise.allSettled(STORES.map(s => loadStore(s.code)));
+  admin.missing = STORES.filter((s,i) => res[i].status === "rejected").map(s => s.code);
+}
 function bindAdmin(){
   const af = $("#adminForm");
   if (af){ $("#aPin").focus(); af.onsubmit = async e => { e.preventDefault(); const pin = $("#aPin").value.trim(); if (!pin) return;
     admin.loading = true; admin.err = ""; render();
-    try { await Promise.all(STORES.map(s => loadStore(s.code))); admin.data = await API.admin(pin, STORES.map(s=>s.code)); admin.pin = pin; admin.at = new Date(); }
-    catch(e){ admin.err = e && (e.code==="bad_pin") ? "รหัสไม่ถูกต้อง" : "เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ ลองอีกครั้ง"; }
+    await loadAllStores();
+    try { admin.data = await API.admin(pin, STORES.map(s=>s.code)); admin.pin = pin; admin.at = new Date(); }
+    catch(e){ admin.err = adminErrMsg(e); }
     admin.loading = false; render(); }; }
   const r = $("#aRefresh"); if (r) r.onclick = adminRefresh;
   const lo = $("#aLogout"); if (lo) lo.onclick = () => { admin = {pin:null, data:null, loading:false, err:""}; render(); };
@@ -935,8 +952,9 @@ function bindAdmin(){
 }
 async function adminRefresh(){
   if (!admin.pin) return; admin.loading = true; render();
-  try { await Promise.all(STORES.map(s => loadStore(s.code))); admin.data = await API.admin(admin.pin, STORES.map(s=>s.code)); admin.at = new Date(); }
-  catch(e){ if (e && e.code==="bad_pin"){ admin.pin = null; admin.err = "รหัสไม่ถูกต้อง"; } else toast("โหลดข้อมูลไม่สำเร็จ"); }
+  await loadAllStores();
+  try { admin.data = await API.admin(admin.pin, STORES.map(s=>s.code)); admin.at = new Date(); }
+  catch(e){ if (e && e.code==="bad_pin"){ admin.pin = null; admin.err = "รหัสไม่ถูกต้อง"; } else toast(adminErrMsg(e)); }
   admin.loading = false; render();
 }
 
@@ -997,7 +1015,8 @@ async function exportExcel(codes){
   if (!window.XLSX){ toast("ยังโหลดตัวสร้างไฟล์ Excel ไม่เสร็จ ลองอีกครั้ง"); return; }
   if (!admin.pin){ toast("ต้องเข้าสู่หน้า Admin ก่อน"); return; }
   try { admin.data = await API.admin(admin.pin, STORES.map(s=>s.code)); admin.at = new Date(); } catch(e){ toast("โหลดข้อมูลล่าสุดไม่ได้ ใช้ข้อมูลที่มีอยู่"); }
-  const ctxs = await Promise.all(codes.map(loadStore));
+  const ctxs = (await Promise.allSettled(codes.map(loadStore))).filter(x => x.status === "fulfilled").map(x => x.value);
+  if (!ctxs.length){ toast("โหลดข้อมูลสาขาไม่ได้"); return; }
   const H1 = ["Excel row", ...ctxs[0].D.cols, "Check status", "Confirmed by", "Position"];
   const H2 = ["Store","Floor","Block_id","NS (sqm)","Block status","Layout","Layout note","Block remark","Brand Group","Department","Subdepartment","Source","Brand status","Moved to Floor","Moved to Block","Brand note","Confirmed by","Position","Confirmed at"];
   const a1 = [H1], a2 = [H2];
@@ -1013,12 +1032,98 @@ async function exportExcel(codes){
   const fname = codes.length===1 ? `Brand assignment - ${ctxs[0].meta.name}_confirmed_${stamp}.xlsx` : `Brand assignment - All stores_confirmed_${stamp}.xlsx`;
   await saveFile(fname, buf);
 }
-async function saveFile(fname, buf){
-  const blob = new Blob([buf], {type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});
+/* ================= layout PDF ================= */
+let pdfFont = null;
+async function loadPdfFont(){
+  if (pdfFont) return pdfFont;
+  const buf = await fetch("fonts/Sarabun-Regular.ttf").then(r => { if (!r.ok) throw new Error("font"); return r.arrayBuffer(); });
+  let bin = ""; const u = new Uint8Array(buf); for (let i = 0; i < u.length; i += 0x8000) bin += String.fromCharCode.apply(null, u.subarray(i, i + 0x8000));
+  pdfFont = btoa(bin); return pdfFont;
+}
+function loadImgAsJpeg(src){
+  return new Promise((res, rej) => { const im = new Image(); im.onload = () => { const c = document.createElement("canvas"); c.width = im.naturalWidth; c.height = im.naturalHeight;
+    const g = c.getContext("2d"); g.fillStyle = "#fff"; g.fillRect(0,0,c.width,c.height); g.drawImage(im,0,0); res(c.toDataURL("image/jpeg", 0.82)); }; im.onerror = rej; im.src = src; });
+}
+// brands to print per block: confirmed answers (minus OUT / moved away) + brands moved in; pending blocks show the Excel brands
+function layoutLabels(ctx, dmap){
+  const out = {};
+  for (const b of ctx.BLOCKS.values()){
+    const d = dmap[b.key];
+    if (d && d.confirmedAt) out[b.key] = Object.values(d.items||{}).filter(i => i.status==="present").map(i => i.name);
+    else out[b.key] = b.exp.map(e => ctx.ROWS.get(e.r)?.b).filter(Boolean);
+  }
+  for (const [k,d] of Object.entries(dmap)){ if (!d.confirmedAt) continue;
+    for (const it of Object.values(d.items||{})) if (it.status==="moved" && it.movedTo && out[it.movedTo] && !out[it.movedTo].includes(it.name)) out[it.movedTo].push(it.name); }
+  return out;
+}
+async function exportLayout(code, btn){
+  if (!window.jspdf){ toast("ยังโหลดตัวสร้าง PDF ไม่เสร็จ ลองอีกครั้ง"); return; }
+  const label = btn ? btn.textContent : ""; if (btn){ btn.disabled = true; btn.textContent = "กำลังสร้าง PDF…"; }
+  try {
+    const ctx = await loadStore(code);
+    let dmap;
+    if (admin.pin && ui.view === "admin"){ try { admin.data = await API.admin(admin.pin, STORES.map(s=>s.code)); admin.at = new Date(); } catch(e){} dmap = admin.data?.[code] || {}; }
+    else { try { dmap = await API.list(code); if (S && S.code === code) docs = dmap; } catch(e){ dmap = (S && S.code === code) ? docs : {}; } }
+    const font = await loadPdfFont();
+    const { jsPDF } = window.jspdf;
+    const HEAD = 46, labels = layoutLabels(ctx, dmap), now = new Date();
+    const COL = { pending:[209,138,0], ok:[31,138,76], changed:[90,63,192], none:[154,146,138] };
+    let doc = null;
+    for (const f of ctx.FLOORS){
+      const [vw, vh] = ctx.VB[f] || [1191, 842];
+      const size = [vw, vh + HEAD], orient = vw > vh + HEAD ? "landscape" : "portrait";
+      if (!doc){ doc = new jsPDF({ unit:"pt", format:size, orientation:orient, compress:true });
+        doc.addFileToVFS("Sarabun.ttf", font); doc.addFont("Sarabun.ttf", "Sarabun", "normal"); doc.setFont("Sarabun"); }
+      else doc.addPage(size, orient);
+      const st = floorStatsIn(ctx, dmap, f);
+      // header
+      doc.setFillColor(179,18,46); doc.rect(0, 0, vw, HEAD, "F");
+      doc.setTextColor(255,255,255); doc.setFontSize(15);
+      doc.text(`Brand Assignment · ${ctx.meta.name} (${ctx.code}) · ชั้น ${ctx.FLABEL[f]||f}`, 16, 20);
+      doc.setFontSize(9.5);
+      doc.text(`ยืนยันแล้ว ${st.done}/${st.tot} Block · มีเปลี่ยนแปลง ${st.chg} · แผนผัง ${fmtPlanDate(ctx.D.planDate)} · ดาวน์โหลด ${now.toLocaleString("th-TH",{dateStyle:"medium",timeStyle:"short"})}`, 16, 36);
+      let lx = vw - 16; doc.setFontSize(9);
+      for (const [k,t] of [["none","ไม่มีแบรนด์ในไฟล์"],["pending","รอยืนยัน (แบรนด์ตามไฟล์)"],["changed","ยืนยัน · มีเปลี่ยนแปลง"],["ok","ยืนยัน · ไม่เปลี่ยน"]]){
+        const w = doc.getTextWidth(t); lx -= w; doc.setTextColor(255,255,255); doc.text(t, lx, 30);
+        lx -= 14; doc.setFillColor(255,255,255); doc.rect(lx, 22, 10, 10, "F"); doc.setFillColor(...COL[k]); doc.rect(lx+1.5, 23.5, 7, 7, "F"); lx -= 14;
+      }
+      // plan image
+      const jpg = await loadImgAsJpeg(`${ctx.base}img/floor_${f}.png`);
+      doc.addImage(jpg, "JPEG", 0, HEAD, vw, vh, undefined, "FAST");
+      // blocks
+      for (const b of ctx.BY_FLOOR[f]){
+        if (!b.bb) continue;
+        const stt = blockStatusIn(ctx, dmap, b.key);
+        const [x0,y0,x1,y1] = b.bb; const h = y1-y0; let rx0 = x0-2.5, ry0 = y0-1.8 + HEAD, rw = (x1-x0)+5, rh = h*2.6+3;
+        if (rw < 16){ rx0 -= (16-rw)/2; rw = 16; } if (rh < 10) rh = 10;
+        const c = COL[stt];
+        doc.setDrawColor(...c); doc.setLineWidth(stt === "none" ? 0.4 : 0.9);
+        if (stt === "none") doc.setLineDashPattern([1.2, 1], 0); else doc.setLineDashPattern([], 0);
+        doc.setGState(new doc.GState({ opacity: stt === "none" ? 0.08 : 0.18 })); doc.setFillColor(...c); doc.rect(rx0, ry0, rw, rh, "F");
+        doc.setGState(new doc.GState({ opacity: 1 })); doc.rect(rx0, ry0, rw, rh, "S");
+        const names = labels[b.key] || [];
+        if (!names.length) continue;
+        doc.setFontSize(4.6); doc.setLineDashPattern([], 0);
+        const lines = names.slice(0, 4); if (names.length > 4) lines[3] = lines[3] + ` +${names.length-3}`;
+        const lh = 5.2, boxH = lines.length * lh + 1.6;
+        const tw = Math.max(...lines.map(t => doc.getTextWidth(t))) + 3;
+        const cx = rx0 + rw/2, top = ry0 - boxH - 0.6;
+        doc.setGState(new doc.GState({ opacity: 0.85 })); doc.setFillColor(255,255,255); doc.rect(cx - tw/2, top, tw, boxH, "F");
+        doc.setGState(new doc.GState({ opacity: 1 })); doc.setTextColor(...(stt === "pending" ? [120,80,0] : [31,26,23]));
+        lines.forEach((t, i) => doc.text(t, cx, top + 1.2 + (i+1) * lh - 1.2, { align:"center" }));
+      }
+    }
+    const stamp = now.toISOString().slice(0,10).replace(/-/g,"");
+    await saveFile(`Layout - ${ctx.meta.name}_${stamp}.pdf`, doc.output("arraybuffer"), "application/pdf");
+  } catch(e){ console.error(e); toast("สร้าง PDF ไม่สำเร็จ ลองอีกครั้ง"); }
+  if (btn){ btn.disabled = false; btn.textContent = label; }
+}
+async function saveFile(fname, buf, mime){
+  const blob = new Blob([buf], {type: mime || "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});
   let dl = null; try { dl = window.claude?.use ? await window.claude.use("downloads") : null; } catch(e){}
-  if (dl){ try { await dl.save({filename:fname, data:blob}); toast("ส่งไฟล์ Excel ให้ดาวน์โหลดแล้ว"); } catch(e){ if (e?.code!=="declined") toast("Export ไม่สำเร็จ"); } return; }
+  if (dl){ try { await dl.save({filename:fname, data:blob}); toast("ส่งไฟล์ให้ดาวน์โหลดแล้ว"); } catch(e){ if (e?.code!=="declined") toast("Export ไม่สำเร็จ"); } return; }
   const url = URL.createObjectURL(blob); const a = document.createElement("a"); a.href = url; a.download = fname; document.body.appendChild(a); a.click(); a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 4000); toast("ดาวน์โหลดไฟล์ Excel แล้ว");
+  setTimeout(() => URL.revokeObjectURL(url), 4000); toast("ดาวน์โหลดไฟล์แล้ว");
 }
 
 /* ================= misc ================= */
