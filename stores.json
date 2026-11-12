@@ -54,6 +54,24 @@
   "brands": 284
  },
  {
+  "code": "10117",
+  "name": "Rama III",
+  "nameTh": "พระราม 3",
+  "planDate": "20261101",
+  "floors": 7,
+  "blocks": 71,
+  "brands": 80
+ },
+ {
+  "code": "10120",
+  "name": "Rama II",
+  "nameTh": "พระราม 2",
+  "planDate": "20261101",
+  "floors": 5,
+  "blocks": 78,
+  "brands": 83
+ },
+ {
   "code": "10121",
   "name": "Phuket",
   "nameTh": "ภูเก็ต",
@@ -90,6 +108,24 @@
   "brands": 300
  },
  {
+  "code": "10149",
+  "name": "WestGate",
+  "nameTh": "เวสต์เกต",
+  "planDate": "20261101",
+  "floors": 5,
+  "blocks": 103,
+  "brands": 103
+ },
+ {
+  "code": "10151",
+  "name": "EastVille",
+  "nameTh": "อีสต์วิลล์",
+  "planDate": "20261101",
+  "floors": 4,
+  "blocks": 82,
+  "brands": 83
+ },
+ {
   "code": "10158",
   "name": "Mega Bangna",
   "nameTh": "เมกาบางนา",
@@ -99,6 +135,15 @@
   "brands": 113
  },
  {
+  "code": "10160",
+  "name": "Udon Thani",
+  "nameTh": "อุดรธานี",
+  "planDate": "20261101",
+  "floors": 3,
+  "blocks": 126,
+  "brands": 126
+ },
+ {
   "code": "10166",
   "name": "Khonkaen",
   "nameTh": "ขอนแก่น",
@@ -106,5 +151,14 @@
   "floors": 5,
   "blocks": 109,
   "brands": 129
+ },
+ {
+  "code": "10169",
+  "name": "Fashion Island",
+  "nameTh": "แฟชั่นไอส์แลนด์",
+  "planDate": "20261101",
+  "floors": 3,
+  "blocks": 148,
+  "brands": 154
  }
 ]
